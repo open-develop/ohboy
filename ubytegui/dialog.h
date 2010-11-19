@@ -44,7 +44,7 @@ int dialog_init(font_t *font, int fg);
 void dialog_close();
 void dialog_begin(const char* title, const char* status);
 int dialog_text(const char *prompt, const char* body, int flags);
-int gui_dialogoption(const char *prompt, const char** options, int* selected);
+int dialog_option(const char *prompt, const char** options, int* selected);
 int dialog_end();
 
 #endif // DIALOG_H_INCLUDED

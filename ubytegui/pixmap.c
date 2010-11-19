@@ -1,4 +1,6 @@
 
+#include "stdlib.h"
+
 #include "png.h"
 #include "pixmap.h"
 
@@ -28,6 +30,10 @@ void pixmap_getargb(pixmap_t *pix, int x, int y, unsigned char *a, unsigned char
 		*b = src[3];
 	}
 }
+
+#ifdef DINGOO_NATIVE
+void die(char *fmt, ...);
+#endif /* DINGOO_NATIVE */
 
 pixmap_t *pixmap_loadpng(char* pic){
 	unsigned char header[8];
@@ -101,7 +107,14 @@ pixmap_t *pixmap_loadpng(char* pic){
         png_set_palette_to_rgb(png_ptr);
 
     if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+    {
+#ifdef DINGOO_NATIVE
+        void die(char *fmt, ...);
+        die("pixmap_loadpng(): gray png found, wanna png_set_gray_1_2_4_to_8.\n");
+#else
 		png_set_gray_1_2_4_to_8(png_ptr);
+#endif /* DINGOO_NATIVE */
+    }
 
     if (png_get_valid(png_ptr, info_ptr,PNG_INFO_tRNS))
 		png_set_tRNS_to_alpha(png_ptr);

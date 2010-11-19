@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
+#include <sys/stat.h> /* for mkdir */
+
 
 #ifdef WIZ
 #include <fcntl.h>
@@ -10,12 +12,18 @@
 
 #include <SDL/SDL.h>
 
+#include "gnuboy.h"
 #include "fb.h"
 #include "input.h"
 #include "rc.h"
 #include "pcm.h"
 #include "ubytegui/gui.h"
 #include "hw.h"
+#include "loader.h"
+#include "gui_sdl.h"
+#include "menu.h"
+
+void ohb_loadrom(char *rom);
 
 #define FONT_NAME "FreeUniversal-Regular.ttf"
 #define FONT_SIZE 14
@@ -145,6 +153,18 @@ rcvar_t joy_exports[] =
 
 /* keymap - mappings of the form { scancode, localcode } - from sdl/keymap.c */
 extern int keymap[][2];
+
+#ifdef DINGOO_NATIVE
+/*
+int mkdir(const char *pathname, mode_t mode);
+void mkdir(char *);
+void mkdir(char *x)
+{
+    
+}
+*/
+#define mkdir(x, y) fsys_mkdir(x)
+#endif /* DINGOO_NATIVE */
 
 void vid_init() {
 
@@ -509,6 +529,7 @@ void vid_begin(){
 }
 
 void osd_volume(){
+    int rounded=0; /* NOTE TODO FIXME unused */
 	static const char *volstr = "Volume";
 	static int x = 0;
 	int w;
@@ -517,8 +538,8 @@ void osd_volume(){
 	w = (pcm_volume * (screen->w-x-4)) >> 8;
 
 	osd_cls(0,screen->h-font->height-4,screen->w,font->height+4);
-	osd_drawtext(font,volstr,2,screen->h+font->descent-2,gui_maprgb(0xFF,0xFF,0xFF),0);
-	osd_drawrect(2+x,screen->h-font->height-2,w,font->height,gui_maprgb(0xFF,0xFF,0xFF));
+	osd_drawtext(font,volstr,2,screen->h+font->descent-2,gui_maprgb(0xFF,0xFF,0xFF));
+	osd_drawrect(2+x,screen->h-font->height-2,w,font->height,gui_maprgb(0xFF,0xFF,0xFF), rounded);
 }
 
 void vid_end() {
@@ -531,10 +552,13 @@ void vid_end() {
 			vid_fb.dirty = 0;
 		}
 
+#define USE_OHBOY_SCALE
+#ifdef USE_OHBOY_SCALE
 		if(upscaler)
 			ohb_scale3x();
 		else
 			ohb_render();
+#endif /* USE_OHBOY_SCALE */
 
 		if(osd_persist || dvolume){
 			osd_volume();
@@ -590,11 +614,16 @@ int pcm_submit(){
 	static int lastbuffer = 0;
 	byte *src;
 	n16 sample;
-
+#define DEBUG_DISABLE_SOUND
+#undef DEBUG_DISABLE_SOUND
+#ifdef DEBUG_DISABLE_SOUND
+return 0; /* no sound */
+#endif /* DEBUG_DISABLE_SOUND */
+    
 	if(pcm.pos<pcm.len)
 		return 1;
 
-	while(pcm_buffered == pcm_bufferlen);
+	if (pcm_buffered>=1) while(pcm_buffered == pcm_bufferlen);
 
 	src = pcm.buf;
 
@@ -638,16 +667,19 @@ void *sys_timer()
 	return tv;
 }
 
-int sys_elapsed(Uint32 *cl)
+int sys_elapsed(void *in_ptr)
 {
+	Uint32 *cl;
 	Uint32 now;
 	Uint32 usecs;
 
+	cl = (Uint32 *) in_ptr;
 	now = SDL_GetTicks() * 1000;
 	usecs = now - *cl;
 	*cl = now;
-	return usecs;
+	return (int) usecs;
 }
+
 
 void sys_sleep(int us)
 {
@@ -656,9 +688,11 @@ void sys_sleep(int us)
 
 void sys_sanitize(char *s)
 {
+#ifndef DINGOO_NATIVE
 	int i;
 	for (i = 0; s[i]; i++)
 		if (s[i] == '\\') s[i] = '/';
+#endif /* DINGOO_NATIVE */
 }
 
 void sys_initpath(char *exe)
@@ -986,6 +1020,39 @@ int main(int argc, char *argv[]){
 
 	init_exports();
 
+	/* Start: gnuboy default settings */
+	rc_command("bind esc quit");
+	rc_command("bind up +up");
+	rc_command("bind down +down");
+	rc_command("bind left +left");
+	rc_command("bind right +right");
+	rc_command("bind d +a");
+	rc_command("bind s +b");
+	rc_command("bind enter +start");
+	rc_command("bind space +select");
+	rc_command("bind tab +select");
+	rc_command("bind joyup +up");
+	rc_command("bind joydown +down");
+	rc_command("bind joyleft +left");
+	rc_command("bind joyright +right");
+	rc_command("bind joy0 +b");
+	rc_command("bind joy1 +a");
+	rc_command("bind joy2 +select");
+	rc_command("bind joy3 +start");
+	rc_command("bind 1 \"set saveslot 1\"");
+	rc_command("bind 2 \"set saveslot 2\"");
+	rc_command("bind 3 \"set saveslot 3\"");
+	rc_command("bind 4 \"set saveslot 4\"");
+	rc_command("bind 5 \"set saveslot 5\"");
+	rc_command("bind 6 \"set saveslot 6\"");
+	rc_command("bind 7 \"set saveslot 7\"");
+	rc_command("bind 8 \"set saveslot 8\"");
+	rc_command("bind 9 \"set saveslot 9\"");
+	rc_command("bind 0 \"set saveslot 0\"");
+	rc_command("bind ins savestate");
+	rc_command("bind del loadstate");
+	/* End: gnuboy default settings */
+    
 	rc_command("set savedir saves");
 	rc_command("set stereo true");
 
@@ -1017,14 +1084,14 @@ int main(int argc, char *argv[]){
 	rc_command("set romdir \"./roms\"");
 	rc_sourcefile("ohboy.rc");
 
-	mkdir("./saves");
+	mkdir("./saves", 0777);
 
 	pix = pixmap_loadpng("etc/launch.png");
 	if(pix){
 		SDL_LockSurface(screen);
 		x = (screen->w - pix->width)/2;
 		y = (screen->h - pix->height)/2;
-		osd_drawpixmap(pix,x,y,0,0);
+		osd_drawpixmap(pix,x,y,0);
 		pixmap_free(pix);
 		SDL_UnlockSurface(screen);
 	}

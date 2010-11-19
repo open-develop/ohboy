@@ -5,6 +5,7 @@
 #define REQUEST_FILES 1
 #define REQUEST_FILES 1
 
-
+int menu();
+int launcher();
 
 #endif // MENU_H_INCLUDED

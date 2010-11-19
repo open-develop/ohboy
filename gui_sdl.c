@@ -1,8 +1,10 @@
 
+#include <string.h>
+
 #include <SDL/SDL.h>
 #include "ohboy.h"
+#include "gui_sdl.h"
 
-#include <string.h>
 #include "ubytegui/gui.h"
 
 #if WIZ

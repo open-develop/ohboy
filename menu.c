@@ -3,20 +3,85 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
+#include <ctype.h>
+
+#include <unistd.h> /* test! for chdir etc. */
+
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <limits.h>
 #include <time.h>
 
+#include "gnuboy.h"
+
 #include "fb.h"
 #include "ubytegui/gui.h"
+#include "ubytegui/dialog.h"
 #include "input.h"
 #include "hw.h"
 #include "rc.h"
 #include "loader.h"
 #include "mem.h"
+#include "sound.h"
+#include "lcd.h"
 
-char *getext(char *s){
+
+#ifdef DINGOO_NATIVE
+/* NOTE this probably doesn't work (related to save slots maybe?) */
+struct stat {
+    mode_t    st_mode;    /* protection */
+    time_t    st_mtime;   /* time of last modification */
+};
+int stat(const char *path, struct stat *buf);
+int stat(const char *path, struct stat *buf)
+{
+    /* NOOP */
+    buf->st_mode = 0;
+    buf->st_mtime = 0;
+}
+/* int fstat(int filedes, struct stat *buf); */
+
+/* linux stat.h */
+#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+#define S_IFMT  00170000
+#define S_IFDIR  0040000
+
+
+int chdir(const char *path);
+int chdir(const char *path)
+{
+    /* NOOP */
+    return 0;
+}
+
+char *getcwd(char *buf, size_t size);
+char *getcwd(char *buf, size_t size)
+{
+    char *x=buf;
+    strcpy(buf, "b:\\");
+    /*
+    x[0]='\0';
+    */
+    return x;
+}
+
+char *ctime(const time_t *timep);
+char *ctime(const time_t *timep)
+{
+    char *x="not_time";
+    return x;
+}
+
+#endif /* DINGOO_NATIVE */
+
+/* Probably DINGOO_NATIVE too... */
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif /* PATH_MAX */
+
+
+char *menu_getext(char *s){
 	char* ext = NULL;
 	while(*s){
 		if(*s++ == '.') ext=s;
@@ -33,7 +98,7 @@ int filterfile(char *p, char *exts){
 	if(exts==NULL) return 1;
 
 	ext = exts;
-	cmp = getext(p);
+	cmp = menu_getext(p);
 
 	if(cmp==NULL) return 0;
 
@@ -264,8 +329,10 @@ int menu_state(int save){
 
 	savedir = rc_getstr("savedir");
 	savename = rc_getstr("savename");
+#ifdef DEBUG_TO_STDOUT
 	puts(savedir);
 	puts(savename);
+#endif /* DEBUG_TO_STDOUT */
 	saveprefix = malloc(strlen(savedir) + strlen(savename) + 2);
 	sprintf(saveprefix, "%s/%s", savedir, savename);
 

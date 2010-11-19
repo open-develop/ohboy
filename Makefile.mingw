@@ -5,7 +5,7 @@ LD = $(CC)
 CFLAGS = -O3
 LDFLAGS = -s
 
-GNUBOY = ./gnuboy-1.0.3
+GNUBOY = ./gnuboy
 
 OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o $(GNUBOY)/cpu.o $(GNUBOY)/mem.o \
 	$(GNUBOY)/rtc.o $(GNUBOY)/hw.o $(GNUBOY)/sound.o \

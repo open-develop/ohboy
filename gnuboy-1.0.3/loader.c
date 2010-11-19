@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *strdup();
-
 static int mbc_table[256] =
 {
 	0, 1, 1, 1, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3,

@@ -1,7 +1,7 @@
 #ifndef OHBOY_H_INCLUDED
 #define OHBOY_H_INCLUDED
 
-#include <SDL/sdl.h>
+#include <SDL/SDL.h>
 
 #define OHBOY_VERSION "1.0.0-beta 1"
 

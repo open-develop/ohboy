@@ -39,7 +39,7 @@ pixmap_t *pixmap_loadpng(char* pic){
 
 	in = fopen(pic, "rb");
 	if(!in){
-		printf("failed to open file\n");
+		printf("failed to open PNG file\n");
 		return NULL;
 	}
 

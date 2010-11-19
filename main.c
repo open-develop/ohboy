@@ -982,7 +982,7 @@ int main(int argc, char *argv[]){
 
 	font = font_load("etc/"FONT_NAME, 0, FONT_SIZE);
 	if(!dialog_init(font,gui_maprgb(255,255,255)))
-		die("GUI: Could not initialise GUI\n");
+		die("GUI: Could not initialise GUI (maybe missing font file)\n");
 
 	init_exports();
 

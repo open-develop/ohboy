@@ -1,0 +1,38 @@
+
+CC = gcc
+LD = $(CC)
+
+CFLAGS = -O3
+LDFLAGS = -s
+
+GNUBOY = ./gnuboy-1.0.3
+
+OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o $(GNUBOY)/cpu.o $(GNUBOY)/mem.o \
+	$(GNUBOY)/rtc.o $(GNUBOY)/hw.o $(GNUBOY)/sound.o \
+	$(GNUBOY)/events.o $(GNUBOY)/keytable.o \
+	$(GNUBOY)/loader.o $(GNUBOY)/save.o $(GNUBOY)/debug.o $(GNUBOY)/emu.o $(GNUBOY)/main.o \
+	$(GNUBOY)/rccmds.o $(GNUBOY)/rckeys.o $(GNUBOY)/rcvars.o $(GNUBOY)/rcfile.o $(GNUBOY)/exports.o \
+	$(GNUBOY)/split.o $(GNUBOY)/path.o $(GNUBOY)/inflate.o \
+	gui_sdl.o keymap.o main.o menu.o \
+	./ubytegui/dialog.o ./ubytegui/font.o ./ubytegui/gui.o ./ubytegui/pixmap.o \
+
+DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
+## NOTE inc paths are from TinyCore SDL-dev
+INCS = -I$(GNUBOY) -I/usr/include/ -I/usr/include/freetype2/ -I/usr/include/freetype2/freetype -I/tmp/tcloop/SDL-dev/usr/local/
+LIBS =  -lSDLmain -lSDL -lfreetype -lpng -lz
+
+MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
+
+all: ohboy
+
+ohboy: $(OBJS)
+	$(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
+
+clean:
+	rm -f ohboy ohboy.exe *.o ubytegui/*.o $(GNUBOY)/*.o
+
+$(GNUBOY)/main.o:
+	$(MYCC) -Dmain=gnuboy_main -c $(GNUBOY)/main.c -o $@
+	
+.c.o:
+	$(MYCC) -c $< -o $@

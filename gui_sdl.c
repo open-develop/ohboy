@@ -1,5 +1,5 @@
 
-#include <SDL/sdl.h>
+#include <SDL/SDL.h>
 #include "ohboy.h"
 
 #include <string.h>

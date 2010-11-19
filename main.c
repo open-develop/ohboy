@@ -1021,7 +1021,9 @@ int main(int argc, char *argv[]){
 	init_exports();
 
 	/* Start: gnuboy default settings */
+    /* do not bind esc as menu grabs it...
 	rc_command("bind esc quit");
+    */
 	rc_command("bind up +up");
 	rc_command("bind down +down");
 	rc_command("bind left +left");

@@ -127,34 +127,39 @@ int fcompare(const void *a, const void *b){
 	return strcmp(stra,strb);
 }
 
-char* menu_browsedir(char* file, char *title, char *exts){
-	char wd[PATH_MAX];
+char* menu_browsedir(char* fpathname, char* file, char *title, char *exts){
+    /* this routine has side effects with fpathname and file, FIXME */
 	DIR *dir;
 	struct dirent *d;
 	struct stat s;
 	int n=0, i, j;
-	char *files[1<<16];
+	char *files[1<<16];  /* 256Kb */
+	char tmpfname[PATH_MAX];
+	char *tmpfname_end;
 
-	getcwd(wd,PATH_MAX);
 
-	if(!(dir = opendir(wd))) return NULL;
+	if(!(dir = opendir(fpathname))) return NULL;
 
 	files[n] = malloc(4);
-	strcpy(files[n], DIRSEP);
-	strcat(files[n], "..");
+	strcpy(files[n], "..");
+	strcat(files[n], DIRSEP);
 	n++;
 
 	d = readdir(dir);
 	if(d && !strcmp(d->d_name,".")) d = readdir(dir);
 	if(d && !strcmp(d->d_name,"..")) d = readdir(dir);
 
+	strcpy(tmpfname, fpathname);
+	tmpfname_end = &tmpfname[0];
+	tmpfname_end += strlen(tmpfname);
 	while(d){
-		stat(d->d_name,&s);
+		strcpy(tmpfname_end, d->d_name);
+		stat(tmpfname, &s);
 		if(S_ISDIR (s.st_mode))
 		{
 			files[n] = malloc(strlen(d->d_name)+2);
-			files[n][0] = DIRSEP_CHAR;
-			strcpy(files[n]+1, d->d_name);
+			strcpy(files[n], d->d_name);
+			strcat(files[n], DIRSEP);
 			n++;
 		} else if(filterfile(d->d_name,exts)){
 			files[n] = malloc(strlen(d->d_name)+1);
@@ -166,8 +171,7 @@ char* menu_browsedir(char* file, char *title, char *exts){
 	closedir (dir);
 	qsort(files+1,n-1,sizeof(char*),fcompare);
 
-	sys_sanitize(wd);
-	dialog_begin(title,wd);
+	dialog_begin(title, fpathname);
 
 	for(i=0; i<n; i++){
 		dialog_text(files[i],"",FIELD_SELECTABLE);
@@ -191,37 +195,46 @@ char* menu_browsedir(char* file, char *title, char *exts){
 }
 
 char* menu_requestfile(char* file, char *title, char* path, char *exts){
-	char wd[PATH_MAX];
 	char *dir;
 	int allocmem = file == NULL;
+	int tmplen = 0;
+    /* TODO clear all the dyanamic memory allocations in this routine and require caller to pre-allocate */
+
+	if (allocmem) file = malloc(PATH_MAX);
 #ifdef DEBUG_ALWAYS_RETURN_ADJUSTRIS_GB
-    if(allocmem) file = malloc(PATH_MAX); /* FIXME COPY/PASTE from below, this looks like a memory leak */
     strcpy(file, "adjustris.gb");
     return file;
 #endif /* DEBUG_ALWAYS_RETURN_ADJUSTRIS_GB */
-
-	getcwd(wd,PATH_MAX);
-	if(path) chdir(path);
-
-	if(allocmem) file = malloc(PATH_MAX);
-	getcwd(file,PATH_MAX);
-	sys_sanitize(file);
-	strcat(file, DIRSEP);
-
-
-	while(dir = menu_browsedir(file+strlen(file),title,exts)){
-		if(dir[0] != DIRSEP_CHAR){
-			realloc(file,strlen(file)+1);
-			break;
+	if(path)
+	{
+		strcpy(file, path);
+		tmplen = strlen(file);
+		if (tmplen >=1)
+		{
+			if (file[tmplen-1] != DIRSEP_CHAR)
+				strcat(file, DIRSEP); /* this is very fragile, e.g. what if dir was specified but does not exist */
 		}
-		chdir(++dir);
-		getcwd(file,PATH_MAX);
-		sys_sanitize(file);
-		strcat(file, DIRSEP);
 	}
-	if(!dir) file = NULL;
+	else
+		strcpy(file, "");
 
-	chdir(wd);
+	while(dir = menu_browsedir(file, file+strlen(file),title,exts)){
+		/*
+		** Check to see if we have a file name,
+		** or a new directory name to scan
+		** Directory name will have trailing path sep character
+		** FIXME check for "../" and dirname the dir
+		*/
+		tmplen = strlen(dir);
+		if (tmplen >=1)
+			if (dir[tmplen-1] != DIRSEP_CHAR)
+			{
+				if (allocmem) realloc(file, strlen(file)+1);
+				break;
+			}
+	}
+	if(!dir) file = NULL; /* FIXME what it file was not null when function was called */
+
 	return file;
 }
 

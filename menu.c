@@ -192,6 +192,11 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 	char wd[PATH_MAX];
 	char *dir;
 	int allocmem = file == NULL;
+#ifdef DEBUG_ALWAYS_RETURN_ADJUSTRIS_GB
+    if(allocmem) file = malloc(PATH_MAX); /* FIXME COPY/PASTE from below, this looks like a memory leak */
+    strcpy(file, "adjustris.gb");
+    return file;
+#endif /* DEBUG_ALWAYS_RETURN_ADJUSTRIS_GB */
 
 	getcwd(wd,PATH_MAX);
 	if(path) chdir(path);

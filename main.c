@@ -1080,6 +1080,22 @@ int main(int argc, char *argv[]){
 	rc_command("bind joy9 +select");
 #endif
 
+#ifdef DINGOO_NATIVE
+	rc_command("bind space quit"); /* X button */
+	rc_command("bind shift quit"); /* Y button - LSHIFT*/
+	rc_command("bind tab quit"); /* Left shoulder */
+	rc_command("bind backspace quit"); /* Right shoulder */
+	rc_command("bind up +up"); /*  */
+	rc_command("bind down +down"); /*  */
+	rc_command("bind left +left"); /*  */
+	rc_command("bind right +right"); /*  */
+	rc_command("bind ctrl +a"); /* A button - LEFTCTRL */
+	rc_command("bind alt +b"); /* B button - LEFTALT */
+	rc_command("bind enter +start"); /* START button */
+	rc_command("bind esc +select"); /* SELECT button */
+#endif /* DINGOO_NATIVE */
+
+
 	rc_command("set upscaler 0");
 	rc_command("set frameskip 0");
 	rc_command("set clockspeed 0");

@@ -688,11 +688,11 @@ void sys_sleep(int us)
 
 void sys_sanitize(char *s)
 {
-#ifndef DINGOO_NATIVE
-	int i;
-	for (i = 0; s[i]; i++)
-		if (s[i] == '\\') s[i] = '/';
-#endif /* DINGOO_NATIVE */
+    /*
+    ** used to be used to convert Windows style path\file into
+    ** unix style path/file as gnuboy code then assumed unix
+    ** Now a NOOP
+    */
 }
 
 void sys_initpath(char *exe)
@@ -701,7 +701,7 @@ void sys_initpath(char *exe)
 
 	home = strdup(exe);
 	sys_sanitize(home);
-	p = strrchr(home, '/');
+	p = strrchr(home, DIRSEP_CHAR);
 	if (p) *p = 0;
 	else
 	{
@@ -711,7 +711,7 @@ void sys_initpath(char *exe)
 		return;
 	}
 	buf = malloc(strlen(home) + 8);
-	sprintf(buf, ".;%s/", home);
+	sprintf(buf, ".;%s%s", home, DIRSEP);
 	rc_setvar("rcpath", 1, &buf);
 	sprintf(buf, ".", home);
 	rc_setvar("savedir", 1, &buf);
@@ -978,8 +978,8 @@ void ohb_loadrom(char *rom){
 	sys_sanitize(rom);
 
 	save = strdup(rom);
-	base = strtok(save,"/");
-	while(tok = strtok(NULL,"/"))
+	base = strtok(save, DIRSEP);
+	while(tok = strtok(NULL, DIRSEP))
 		base = tok;
 	tok = base;
 	while(*tok){
@@ -1014,7 +1014,7 @@ int main(int argc, char *argv[]){
 	sdl_joy = SDL_JoystickOpen(0);
 	SDL_JoystickEventState(SDL_ENABLE);
 
-	font = font_load("etc/"FONT_NAME, 0, FONT_SIZE);
+	font = font_load("etc" DIRSEP FONT_NAME, 0, FONT_SIZE);
 	if(!dialog_init(font,gui_maprgb(255,255,255)))
 		die("GUI: Could not initialise GUI (maybe missing font file)\n");
 
@@ -1102,12 +1102,12 @@ int main(int argc, char *argv[]){
 	rc_command("set upscaler 0");
 	rc_command("set frameskip 0");
 	rc_command("set clockspeed 0");
-	rc_command("set romdir \"./roms\"");
+	rc_command("set romdir \"roms\"");
 	rc_sourcefile("ohboy.rc");
 
-	mkdir("./saves", 0777);
+	mkdir("saves", 0777);
 
-	pix = pixmap_loadpng("etc/launch.png");
+	pix = pixmap_loadpng("etc"DIRSEP"launch.png");
 	if(pix){
 		SDL_LockSurface(screen);
 		x = (screen->w - pix->width)/2;

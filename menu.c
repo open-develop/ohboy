@@ -140,7 +140,9 @@ char* menu_browsedir(char* file, char *title, char *exts){
 	if(!(dir = opendir(wd))) return NULL;
 
 	files[n] = malloc(4);
-	strcpy(files[n++], "/..");
+	strcpy(files[n], DIRSEP);
+	strcat(files[n], "..");
+	n++;
 
 	d = readdir(dir);
 	if(d && !strcmp(d->d_name,".")) d = readdir(dir);
@@ -151,7 +153,7 @@ char* menu_browsedir(char* file, char *title, char *exts){
 		if(S_ISDIR (s.st_mode))
 		{
 			files[n] = malloc(strlen(d->d_name)+2);
-			files[n][0] = '/';
+			files[n][0] = DIRSEP_CHAR;
 			strcpy(files[n]+1, d->d_name);
 			n++;
 		} else if(filterfile(d->d_name,exts)){
@@ -204,18 +206,18 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 	if(allocmem) file = malloc(PATH_MAX);
 	getcwd(file,PATH_MAX);
 	sys_sanitize(file);
-	strcat(file,"/");
+	strcat(file, DIRSEP);
 
 
 	while(dir = menu_browsedir(file+strlen(file),title,exts)){
-		if(dir[0]!='/'){
+		if(dir[0] != DIRSEP_CHAR){
 			realloc(file,strlen(file)+1);
 			break;
 		}
 		chdir(++dir);
 		getcwd(file,PATH_MAX);
 		sys_sanitize(file);
-		strcat(file,"/");
+		strcat(file, DIRSEP);
 	}
 	if(!dir) file = NULL;
 
@@ -271,7 +273,7 @@ char *menu_requestdir(const char *title, const char *path){
 			{
 				l = strlen(d->d_name);
 				ldirs[ldirn] = malloc(l+2);
-				ldirs[ldirn][0] = '/';
+				ldirs[ldirn][0] = DIRSEP_CHAR;
 				strcpy(ldirs[ldirn]+1, d->d_name);
 
 				dialog_text(ldirs[ldirn],NULL,FIELD_SELECTABLE);
@@ -339,7 +341,7 @@ int menu_state(int save){
 	puts(savename);
 #endif /* DEBUG_TO_STDOUT */
 	saveprefix = malloc(strlen(savedir) + strlen(savename) + 2);
-	sprintf(saveprefix, "%s/%s", savedir, savename);
+	sprintf(saveprefix, "%s%s%s", savedir, DIRSEP, savename);
 
 	dialog_begin(save?"Save State":"Load State",rom.name);
 

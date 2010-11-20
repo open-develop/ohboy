@@ -1102,7 +1102,11 @@ int main(int argc, char *argv[]){
 	rc_command("set upscaler 0");
 	rc_command("set frameskip 0");
 	rc_command("set clockspeed 0");
+#ifdef DINGOO_NATIVE
+	rc_command("set romdir \".\"");
+#else
 	rc_command("set romdir \"roms\"");
+#endif /* DINGOO_NATIVE */
 	rc_sourcefile("ohboy.rc");
 
 	mkdir("saves", 0777);

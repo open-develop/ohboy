@@ -283,6 +283,7 @@ char* menu_browsedir(char* fpathname, char* file, char *title, char *exts){
 
 	if(!(dir = opendir(fpathname))) return NULL; /* FIXME try parent(s) until out of paths */
 
+	/* TODO FIXME add root directory check (to avoid adding .. as a menu option when at "/" or "x:\") */
 	files[n] = malloc(4);
 	strcpy(files[n], "..");
 	strcat(files[n], DIRSEP);
@@ -349,6 +350,7 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 	char *dir;
 	int allocmem = file == NULL;
 	int tmplen = 0;
+	char parent_dir_str[5];
     /* TODO clear all the dyanamic memory allocations in this routine and require caller to pre-allocate */
 
 	if (allocmem) file = malloc(PATH_MAX);
@@ -368,8 +370,30 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 	}
 	else
 		strcpy(file, "");
+    
+	snprintf(parent_dir_str, sizeof(parent_dir_str), "..%s", DIRSEP);
 
 	while(dir = menu_browsedir(file, file+strlen(file),title,exts)){
+        if (!strcmp(dir, parent_dir_str))
+        {
+            /* need to go up a directory */
+            dir--;
+            if (dir > file)
+            {
+                *dir = '\0';
+                while (dir >= file && *dir != DIRSEP_CHAR)
+                {
+                    *dir = '\0';
+                    dir--;
+                }
+            }
+            if (strlen(file) == 0)
+            {
+                sprintf(file, ".%s", DIRSEP);
+                dir = file + strlen(file)+1;
+                *dir = '\0';
+            }
+        }
 		/*
 		** Check to see if we have a file name,
 		** or a new directory name to scan

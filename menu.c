@@ -15,6 +15,8 @@
 #include <limits.h>
 #include <time.h>
 
+#include "gnuboy/Version"
+
 #include "gnuboy.h"
 
 #include "fb.h"
@@ -691,6 +693,7 @@ const char *lframeskip[] = {"Auto","Off","1","2","3","4",NULL};
 #if WIZ
 const char *lclockspeeds[] = {"Default","250 mhz","300 mhz","350 mhz","400 mhz","450 mhz","500 mhz","550 mhz","600 mhz","650 mhz","700 mhz","750 mhz",NULL};
 #endif
+const char *volume_levels[] = {"0%", "25%", "50%", "75%", "100%", NULL};
 
 
 static char config[16][256];
@@ -699,6 +702,7 @@ int menu_options(){
 
 	struct pal_s *palp=0;
 	int pal=0, skip=0, ret=0, cfilter=0, upscale=0, speed=0, i=0;
+	int volume=0;
 	char *tmp=0, *romdir=0;
 
 	FILE *file;
@@ -729,20 +733,22 @@ int menu_options(){
 	dialog_text("Clock Speed","Default",0);
 #endif
 	dialog_text("Rom Path",romdir,FIELD_SELECTABLE);
+	dialog_option("Volume", volume_levels, &volume); /* this is not the OSD volume.. */
 	dialog_text(NULL,NULL,0);
 	dialog_text("Apply",NULL,FIELD_SELECTABLE);
 	dialog_text("Save",NULL,FIELD_SELECTABLE);
 
 	switch(ret=dialog_end()){
-		case 6:
+		case 6: /* "Rom Path" romdir */
 			tmp = menu_requestdir("Select Rom Directory",romdir);
 			if(tmp){
 				free(romdir);
 				romdir = tmp;
 			}
 			goto start;
-		case 8:
-		case 9:
+		case 9: /* Apply */
+		case 10: /* Save */
+			fprintf(stdout, "DEBUG: volumne %d\n", volume); fflush(stdout); /* TODO set hardware volume (the osd volume is software mixing */
 			palp = &gbpal[pal];
 			if(speed)
 				speed = speed*50 + 200;
@@ -762,7 +768,7 @@ int menu_options(){
 
 			pal_dirty();
 
-			if(ret==9){
+			if (ret == 10){ /* Save */
 				file = fopen("ohboy.rc","w");
 				for(i=0; i<10; i++){
 					fputs(config[i],file);
@@ -836,11 +842,14 @@ int launcher(){;
 
 	char *rom = 0;
 	char *dir = rc_getstr("romdir");
+	char *version_str[80];
+    
+    snprintf(version_str, sizeof(version_str)-1, "gnuboy %s", VERSION);
 
 	gui_begin();
 
 launcher:
-	dialog_begin("OhBoy http://ohboy.googlecode.com/","OhBoy");
+	dialog_begin("OhBoy http://ohboy.googlecode.com/", version_str);
 	dialog_text("Load ROM",NULL,FIELD_SELECTABLE);
 	dialog_text("Options",NULL,FIELD_SELECTABLE);
 	dialog_text("Quit","",FIELD_SELECTABLE);

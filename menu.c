@@ -1,7 +1,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <dirent.h>
+#ifndef DINGOO_NATIVE
+    #include <dirent.h>
+#endif
 #include <string.h>
 #include <ctype.h>
 
@@ -73,6 +75,143 @@ char *ctime(const time_t *timep)
     return x;
 }
 
+
+/* Dingoo native SDK temporary workaround dirent.h header start */
+struct dirent {
+	ino_t d_ino;
+	unsigned int d_type; /* NOTE using the same type that fsys uses for file type mask; unsigned int  attributes;*/
+	char* d_name;
+};
+
+#define DT_DIR FSYS_ATTR_DIR
+#define DT_REG FSYS_ATTR_FILE /* Not sure if this is a suitable mapping */
+
+typedef void DIR;
+
+extern DIR* opendir(const char *name);
+extern int  closedir(DIR* dir);
+
+extern struct dirent* readdir(DIR* dir);
+/* header end */
+
+
+/* code start */
+    FILE *myout=NULL;
+
+
+typedef struct {
+	fsys_file_info_t info;
+	int              type;
+	char*            path;
+	bool             eod;
+	struct dirent    cur_entry;
+	bool             was_read;
+	long             offset;
+} _dir_t;
+
+
+
+extern char* _app_path;
+extern char* _file_path(const char* inPath);
+
+
+
+DIR* opendir(const char* name) {
+	char* tempPath = NULL;
+	_dir_t* tempDir = NULL;
+	int tmplen = 0;
+	char *tmpstrptr=NULL;
+
+
+	tempPath = _file_path(name);
+	if(tempPath == NULL)
+		return NULL;
+
+	tempDir = (_dir_t*)malloc(sizeof(_dir_t));
+	if(tempDir == NULL) {
+		free(tempPath);
+		return NULL;
+	}
+
+	tempDir->path   = tempPath;
+	tempDir->eod    = false;
+	tempDir->offset = 0;
+	tempDir->type   = -1; /* All object types */
+
+	char tempMask[strlen(tempDir->path) + 3];
+    /* FIXME I'm not keen on stack allocations mid function this is C not C++! */
+    
+	/* Make sure there are no trailing slashes fsys_findfirst() won't find paths with multiple slashes */
+	tmplen = strlen(tempMask);
+	strcpy(tempMask, tempDir->path);
+	tmplen = strlen(tempMask);
+	tmpstrptr = &tempMask[tmplen-1];
+	while (*tmpstrptr == '\\') *tmpstrptr-- = '\0';
+	strcat(tempMask, "\\*");
+
+    
+	if(fsys_findfirst(tempMask, tempDir->type, &(tempDir->info)) != 0) {
+		tempDir->eod = true;
+	}
+
+	if(!tempDir->eod) {
+		/* TODO hide attributes & FSYS_ATTR_DISKLABEL ?*/
+		tempDir->cur_entry.d_ino  = tempDir->info.handle;
+		tempDir->cur_entry.d_name = tempDir->info.name;
+		tempDir->cur_entry.d_type = tempDir->info.attributes;
+	}
+	tempDir->was_read = false;
+
+	return (DIR*)tempDir;
+}
+
+int closedir(DIR* dir) {
+	_dir_t* tempDir = (_dir_t*)dir;
+
+	if(dir == NULL)
+		return -1;
+
+	if(!tempDir->eod)
+		fsys_findclose(&(tempDir->info));
+	if(tempDir->path != NULL)
+		free(tempDir->path);
+	free(tempDir);
+
+	return 0;
+}
+
+
+
+struct dirent* readdir(DIR* dir) {
+	_dir_t* tempDir = (_dir_t*)dir;
+
+	if(dir == NULL)
+		return NULL;
+
+	if(tempDir->eod)
+		return NULL;
+
+	if(!tempDir->was_read) {
+		tempDir->was_read = true;
+		return &(tempDir->cur_entry);
+	}
+
+	if(fsys_findnext(&(tempDir->info)) != 0) {
+		tempDir->eod = true;
+		return NULL;
+	}
+
+	tempDir->offset++;
+	/* TODO hide attributes & FSYS_ATTR_DISKLABEL ?*/
+	tempDir->cur_entry.d_ino  = tempDir->info.handle;
+	tempDir->cur_entry.d_name = tempDir->info.name;
+	tempDir->cur_entry.d_type = tempDir->info.attributes;
+
+	return &(tempDir->cur_entry);
+}
+
+/* code end */
+
 #endif /* DINGOO_NATIVE */
 
 /* Probably DINGOO_NATIVE too... */
@@ -134,8 +273,10 @@ char* menu_browsedir(char* fpathname, char* file, char *title, char *exts){
 	struct stat s;
 	int n=0, i, j;
 	char *files[1<<16];  /* 256Kb */
+#ifndef  DT_DIR
 	char tmpfname[PATH_MAX];
 	char *tmpfname_end;
+#endif /* DT_DIR */
 
 
 	if(!(dir = opendir(fpathname))) return NULL;
@@ -149,13 +290,21 @@ char* menu_browsedir(char* fpathname, char* file, char *title, char *exts){
 	if(d && !strcmp(d->d_name,".")) d = readdir(dir);
 	if(d && !strcmp(d->d_name,"..")) d = readdir(dir);
 
+#ifndef  DT_DIR
 	strcpy(tmpfname, fpathname);
 	tmpfname_end = &tmpfname[0];
 	tmpfname_end += strlen(tmpfname);
+#endif /* DT_DIR */
+
 	while(d){
+#ifndef  DT_DIR
+		/* can not lookup type from search result have to stat filename*/
 		strcpy(tmpfname_end, d->d_name);
 		stat(tmpfname, &s);
 		if(S_ISDIR (s.st_mode))
+#else
+		if ((d->d_type & DT_DIR) == DT_DIR)
+#endif /* DT_DIR */
 		{
 			files[n] = malloc(strlen(d->d_name)+2);
 			strcpy(files[n], d->d_name);
@@ -691,7 +840,7 @@ int launcher(){;
 	gui_begin();
 
 launcher:
-	dialog_begin("OhBoy Copyright (C) 2009 UBYTE","OhBoy");
+	dialog_begin("OhBoy http://ohboy.googlecode.com/","OhBoy");
 	dialog_text("Load ROM",NULL,FIELD_SELECTABLE);
 	dialog_text("Options",NULL,FIELD_SELECTABLE);
 	dialog_text("Quit","",FIELD_SELECTABLE);

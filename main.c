@@ -706,15 +706,15 @@ void sys_initpath(char *exe)
 	else
 	{
 		buf = ".";
-		rc_setvar("rcpath", 1, &buf);
-		rc_setvar("savedir", 1, &buf);
+		rc_setvar("rcpath", rcv_string, &buf);
+		rc_setvar("savedir", rcv_string, &buf);
 		return;
 	}
 	buf = malloc(strlen(home) + 8);
 	sprintf(buf, ".;%s%s", home, DIRSEP);
-	rc_setvar("rcpath", 1, &buf);
+	rc_setvar("rcpath", rcv_string, &buf);
 	sprintf(buf, ".", home);
-	rc_setvar("savedir", 1, &buf);
+	rc_setvar("savedir", rcv_string, &buf);
 	free(buf);
 }
 
@@ -989,12 +989,26 @@ void ohb_loadrom(char *rom){
 	if(ext)
 		*ext = 0;
 
-	rc_setvar("savename",1,&base);
+	rc_setvar("savename", rcv_string, &base);
 	free(save);
 
 	loader_init(rom);
 	emu_reset();
 }
+
+#ifdef DINGOO_NATIVE
+char     exe_path[256];
+char* exe_path_init(const char* inPath) {
+	uintptr_t i, j;
+	for(i = 0, j = 0; inPath[i] != '\0'; i++) {
+		if((inPath[i] == '\\') || (inPath[i] == '/'))
+			j = i + 1;
+	}
+	strncpy(exe_path, inPath, j);
+	exe_path[j] = '\0';
+	return exe_path;
+}
+#endif /* DINGOO_NATIVE */
 
 int main(int argc, char *argv[]){
 	FILE *config;
@@ -1002,6 +1016,7 @@ int main(int argc, char *argv[]){
 	int x, y;
 	pixmap_t *pix;
 	char *cpu;
+	char *tmp_buf=NULL;
 
 	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK);
 #ifdef WIZ
@@ -1103,7 +1118,10 @@ int main(int argc, char *argv[]){
 	rc_command("set frameskip 0");
 	rc_command("set clockspeed 0");
 #ifdef DINGOO_NATIVE
-	rc_command("set romdir \".\"");
+	exe_path_init(argv[0]); /* workout directory containing this exe */
+	tmp_buf = exe_path;
+
+	rc_setvar("romdir", rcv_string, &tmp_buf);
 #else
 	rc_command("set romdir \"roms\"");
 #endif /* DINGOO_NATIVE */

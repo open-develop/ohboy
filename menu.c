@@ -281,7 +281,7 @@ char* menu_browsedir(char* fpathname, char* file, char *title, char *exts){
 #endif /* DT_DIR */
 
 
-	if(!(dir = opendir(fpathname))) return NULL;
+	if(!(dir = opendir(fpathname))) return NULL; /* FIXME try parent(s) until out of paths */
 
 	files[n] = malloc(4);
 	strcpy(files[n], "..");

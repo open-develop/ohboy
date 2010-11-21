@@ -380,11 +380,11 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 		if (tmplen >=1)
 			if (dir[tmplen-1] != DIRSEP_CHAR)
 			{
-				if (allocmem) realloc(file, strlen(file)+1);
+				if (allocmem) file = realloc(file, strlen(file)+1);
 				break;
 			}
 	}
-	if(!dir) file = NULL; /* FIXME what it file was not null when function was called */
+	if(!dir) file = NULL; /* FIXME what it file was not null when function was called, what about free'ing this is we allocated it? */
 
 	return file;
 }
@@ -500,10 +500,6 @@ int menu_state(int save){
 
 	savedir = rc_getstr("savedir");
 	savename = rc_getstr("savename");
-#ifdef DEBUG_TO_STDOUT
-	puts(savedir);
-	puts(savename);
-#endif /* DEBUG_TO_STDOUT */
 	saveprefix = malloc(strlen(savedir) + strlen(savename) + 2);
 	sprintf(saveprefix, "%s%s%s", savedir, DIRSEP, savename);
 

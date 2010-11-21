@@ -70,7 +70,7 @@ byte pcm_frame[PCM_FRAME << 1];
 volatile int pcm_buffered = 0;
 
 n16 *pcm_head, *pcm_tail;
-int pcm_volume=0x80, pcm_bufferlen;
+int pcm_soft_volume=0x80, pcm_bufferlen;
 
 SDL_Joystick * sdl_joy;
 static const int joy_commit_range = 3276;
@@ -535,7 +535,7 @@ void osd_volume(){
 	int w;
 	if(!x) x = font_textwidth(font,volstr)+4;
 
-	w = (pcm_volume * (screen->w-x-4)) >> 8;
+	w = (pcm_soft_volume * (screen->w-x-4)) >> 8;
 
 	osd_cls(0,screen->h-font->height-4,screen->w,font->height+4);
 	osd_drawtext(font,volstr,2,screen->h+font->descent-2,gui_maprgb(0xFF,0xFF,0xFF));
@@ -627,15 +627,15 @@ return 0; /* no sound */
 
 	src = pcm.buf;
 
-	pcm_volume += dvolume;
-	if(pcm_volume < 0)
-		pcm_volume = 0;
-	else if(pcm_volume >256)
-		pcm_volume = 256;
+	pcm_soft_volume += dvolume;
+	if(pcm_soft_volume < 0)
+		pcm_soft_volume = 0;
+	else if(pcm_soft_volume >256)
+		pcm_soft_volume = 256;
 
 	while(pcm.pos){
 		sample = (*src++) - 128;
-		sample = sample * pcm_volume;
+		sample = sample * pcm_soft_volume;
 		*(pcm_head++) = sample;
 		pcm.pos--;
 	}

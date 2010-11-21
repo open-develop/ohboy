@@ -693,7 +693,8 @@ const char *lframeskip[] = {"Auto","Off","1","2","3","4",NULL};
 #if WIZ
 const char *lclockspeeds[] = {"Default","250 mhz","300 mhz","350 mhz","400 mhz","450 mhz","500 mhz","550 mhz","600 mhz","650 mhz","700 mhz","750 mhz",NULL};
 #endif
-const char *volume_levels[] = {"0%", "25%", "50%", "75%", "100%", NULL};
+const char *volume_levels[] = {"0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%", NULL};
+int volume_hardware = 100 / 10; /* todo make this an rc variable */
 
 
 static char config[16][256];
@@ -702,7 +703,6 @@ int menu_options(){
 
 	struct pal_s *palp=0;
 	int pal=0, skip=0, ret=0, cfilter=0, upscale=0, speed=0, i=0;
-	int volume=0;
 	char *tmp=0, *romdir=0;
 
 	FILE *file;
@@ -733,7 +733,11 @@ int menu_options(){
 	dialog_text("Clock Speed","Default",0);
 #endif
 	dialog_text("Rom Path",romdir,FIELD_SELECTABLE);
-	dialog_option("Volume", volume_levels, &volume); /* this is not the OSD volume.. */
+	#ifdef GNUBOY_HARDWARE_VOLUME
+	dialog_option("Volume", volume_levels, &volume_hardware); /* this is not the OSD volume.. */
+	#else
+	dialog_text("Volume", "Default - use soft volume", 0); /* this is not the OSD volume.. */
+	#endif /* GNBOY_HARDWARE_VOLUME */
 	dialog_text(NULL,NULL,0);
 	dialog_text("Apply",NULL,FIELD_SELECTABLE);
 	dialog_text("Save",NULL,FIELD_SELECTABLE);
@@ -748,7 +752,9 @@ int menu_options(){
 			goto start;
 		case 9: /* Apply */
 		case 10: /* Save */
-			fprintf(stdout, "DEBUG: volumne %d\n", volume); fflush(stdout); /* TODO set hardware volume (the osd volume is software mixing */
+			#ifdef GNUBOY_HARDWARE_VOLUME
+			pcm_volume(volume_hardware * 10);
+			#endif /* GNBOY_HARDWARE_VOLUME */
 			palp = &gbpal[pal];
 			if(speed)
 				speed = speed*50 + 200;

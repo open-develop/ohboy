@@ -32,25 +32,6 @@
 
 
 #ifdef DINGOO_NATIVE
-/* NOTE this probably doesn't work (related to save slots maybe?) */
-struct stat {
-    mode_t    st_mode;    /* protection */
-    time_t    st_mtime;   /* time of last modification */
-};
-int stat(const char *path, struct stat *buf);
-int stat(const char *path, struct stat *buf)
-{
-    /* NOOP */
-    buf->st_mode = 0;
-    buf->st_mtime = 0;
-}
-/* int fstat(int filedes, struct stat *buf); */
-
-/* linux stat.h */
-#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#define S_IFMT  00170000
-#define S_IFDIR  0040000
-
 
 int chdir(const char *path);
 int chdir(const char *path)
@@ -272,10 +253,10 @@ char* menu_browsedir(char* fpathname, char* file, char *title, char *exts){
     /* this routine has side effects with fpathname and file, FIXME */
 	DIR *dir;
 	struct dirent *d;
-	struct stat s;
 	int n=0, i, j;
 	char *files[1<<16];  /* 256Kb */
 #ifndef  DT_DIR
+	struct stat s;
 	char tmpfname[PATH_MAX];
 	char *tmpfname_end;
 #endif /* DT_DIR */
@@ -418,7 +399,9 @@ char *menu_requestdir(const char *title, const char *path){
 	int ldirsz, ldirn=0, ret, l;
 	DIR *cd;
 	struct dirent *d;
+#ifndef  DT_DIR
 	struct stat s;
+#endif /* DT_DIR */
 	char *cdpath;
     
 //#ifndef  DT_DIR
@@ -454,8 +437,6 @@ char *menu_requestdir(const char *title, const char *path){
 				ldirsz += 16;
 				ldirs = realloc(ldirs,ldirsz*sizeof(char*));
 			}
-
-			stat(d->d_name,&s);
 
 #ifndef  DT_DIR
 			/* can not lookup type from search result have to stat filename*/
@@ -544,7 +525,10 @@ int menu_state(int save){
 	char* name;
 
 	int i, flags,ret, del=0,l;
+#ifndef DINGOO_NATIVE
+    /* DINGOO FIXME! consider looking at fsys_find as this can lookup time stamps BUT timestamps don't work well due to missing clock.... */
 	struct stat fstat;
+#endif
 
 	time_t time;
 	char *tstr;
@@ -566,6 +550,7 @@ int menu_state(int save){
 		name = malloc(strlen(saveprefix) + 5);
 		sprintf(name, "%s.%03d", saveprefix, i);
 
+#ifndef DINGOO_NATIVE
 		if(!stat(name,&fstat)){
 			time = fstat.st_mtime;
 			tstr = ctime(&time);
@@ -575,7 +560,9 @@ int menu_state(int save){
 			strcpy(statebody[i],tstr);
 			statebody[i][l-1]=0;
 			flags = FIELD_SELECTABLE;
-		} else{
+		} else
+#endif
+{
 			statebody[i] = (char*)emptyslot;
 			flags = save ? FIELD_SELECTABLE : 0;
 		}

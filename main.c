@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
-#include <sys/stat.h> /* for mkdir */
+
+/* posix includes for mkdir */
+#include <sys/types.h>
+#include <sys/stat.h>
 
 
 #ifdef WIZ
@@ -154,17 +157,6 @@ rcvar_t joy_exports[] =
 /* keymap - mappings of the form { scancode, localcode } - from sdl/keymap.c */
 extern int keymap[][2];
 
-#ifdef DINGOO_NATIVE
-/*
-int mkdir(const char *pathname, mode_t mode);
-void mkdir(char *);
-void mkdir(char *x)
-{
-    
-}
-*/
-#define mkdir(x, y) fsys_mkdir(x)
-#endif /* DINGOO_NATIVE */
 
 void vid_init() {
 
@@ -1127,7 +1119,7 @@ int main(int argc, char *argv[]){
 #endif /* DINGOO_NATIVE */
 	rc_sourcefile("ohboy.rc");
 
-	mkdir("saves", 0777);
+	mkdir("saves", 0777); /* FIXME lookup "savedir" rc variable and mkdir that instead? */
 
 	pix = pixmap_loadpng("etc"DIRSEP"launch.png");
 	if(pix){

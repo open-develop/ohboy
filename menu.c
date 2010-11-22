@@ -414,28 +414,29 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 }
 
 char *menu_requestdir(const char *title, const char *path){
-	char *dir=NULL, *wd, **ldirs;
+	char *dir=NULL, **ldirs;
 	int ldirsz, ldirn=0, ret, l;
 	DIR *cd;
 	struct dirent *d;
 	struct stat s;
 	char *cdpath;
-
-	wd = malloc(PATH_MAX);
-	getcwd(wd,PATH_MAX);
-
-	if(path) chdir(path);
+    
+//#ifndef  DT_DIR
+	char tmpfname[PATH_MAX];
+	char *tmpfname_end;
+//#endif /* DT_DIR */
 
 	cdpath = malloc(PATH_MAX);
-	getcwd(cdpath,PATH_MAX);
+
+	strcpy(cdpath, path);
+//#ifndef  DT_DIR
+	strcpy(tmpfname, path);
+	tmpfname_end = &tmpfname[0];
+	tmpfname_end += strlen(tmpfname);
+//#endif /* DT_DIR */
 
 	while(!dir){
-
-		getcwd(cdpath,PATH_MAX);
-
-		cd = opendir(".");
-
-		sys_sanitize(cdpath);
+		cd = opendir(cdpath);
 
 		dialog_begin(title, cdpath);
 		dialog_text("[Select This Directory]",NULL,FIELD_SELECTABLE);
@@ -449,7 +450,6 @@ char *menu_requestdir(const char *title, const char *path){
 		if(d && !strcmp(d->d_name,"..")) d = readdir(cd);
 
 		while(d){
-
 			if(ldirn >= ldirsz){
 				ldirsz += 16;
 				ldirs = realloc(ldirs,ldirsz*sizeof(char*));
@@ -457,12 +457,20 @@ char *menu_requestdir(const char *title, const char *path){
 
 			stat(d->d_name,&s);
 
-			if(S_ISDIR (s.st_mode))
+//#ifndef  DT_DIR
+		/* can not lookup type from search result have to stat filename*/
+		strcpy(tmpfname_end, d->d_name);
+		stat(tmpfname, &s);
+		if(S_ISDIR (s.st_mode))
+//#else
+//		if ((d->d_type & DT_DIR) == DT_DIR)
+//#endif /* DT_DIR */
 			{
 				l = strlen(d->d_name);
 				ldirs[ldirn] = malloc(l+2);
-				ldirs[ldirn][0] = DIRSEP_CHAR;
-				strcpy(ldirs[ldirn]+1, d->d_name);
+				strcpy(ldirs[ldirn], d->d_name);
+				ldirs[ldirn][l] = DIRSEP_CHAR;
+				ldirs[ldirn][l+1] = '\0';
 
 				dialog_text(ldirs[ldirn],NULL,FIELD_SELECTABLE);
 				ldirn++;
@@ -480,10 +488,37 @@ char *menu_requestdir(const char *title, const char *path){
 				dir = strdup(cdpath);
 				break;
 			case 2:
-				chdir("..");
+				{
+					/* need to go up a directory */
+					char *tmp_str=NULL;
+					tmp_str=cdpath;
+					tmp_str+=strlen(tmp_str)-1;
+					tmp_str--;
+					if (tmp_str > cdpath)
+					{
+						*tmp_str = '\0';
+						while (tmp_str >= cdpath && *tmp_str != DIRSEP_CHAR)
+						{
+							*tmp_str = '\0';
+							tmp_str--;
+						}
+					}
+					if (strlen(cdpath) == 0)
+					{
+						sprintf(cdpath, ".%s", DIRSEP);
+						tmp_str = cdpath + strlen(cdpath)+1;
+						*tmp_str = '\0';
+					}
+					strcpy(tmpfname, cdpath);
+					tmpfname_end = &tmpfname[0];
+					tmpfname_end += strlen(tmpfname);
+				}
 				break;
 			default:
-				chdir(ldirs[ret-3]+1);
+				strcpy(tmpfname_end, ldirs[ret-3]);
+				tmpfname_end = &tmpfname[0];
+				tmpfname_end += strlen(tmpfname);
+				strcpy(cdpath, tmpfname);
 				break;
 		}
 
@@ -495,9 +530,6 @@ char *menu_requestdir(const char *title, const char *path){
 	if(dir==(char*)-1)
 		dir = NULL;
 
-
-	chdir(wd);
-	free(wd);
 	free(cdpath);
 
 	return dir;

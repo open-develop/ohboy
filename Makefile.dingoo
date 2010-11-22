@@ -14,6 +14,7 @@ CC_OPTS   += -DIS_LITTLE_ENDIAN -DDINGOO_NATIVE=1 -DGNUBOY_DISABLE_MAIN=1 -DGNUB
 #CC_OPTS   += -DDEBUG_ALWAYS_RETURN_ADJUSTRIS_GB
 CC_OPTS   += -DGNUBOY_HARDWARE_VOLUME
 CC_OPTS   += -DGNUBOY_NO_PRINTF  ## dingoo does have printf BUT it goes to the serial port (well contact pads where you can solder a serial port/line).
+CC_OPTS   += -DOHBOY_FILE_STAT_NOT_AVAILABLE
 
 
 

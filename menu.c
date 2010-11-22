@@ -361,6 +361,7 @@ char *menu_requestdir(const char *title, const char *path){
 
 static const char *slots[] = {"Slot 0","Slot 1","Slot 2","Slot 3","Slot 4","Slot 5","Slot 6","Slot 7",NULL};
 static const char *emptyslot = "<Empty>";
+static const char *not_emptyslot = "<Used>";
 
 int menu_state(int save){
 
@@ -368,13 +369,12 @@ int menu_state(int save){
 	char* name;
 
 	int i, flags,ret, del=0,l;
-#ifndef DINGOO_NATIVE
-    /* DINGOO FIXME! consider looking at fsys_find as this can lookup time stamps BUT timestamps don't work well due to missing clock.... */
+#ifndef OHBOY_FILE_STAT_NOT_AVAILABLE
+	/* Not all platforms implement stat()/fstat() */
 	struct stat fstat;
-#endif
-
 	time_t time;
 	char *tstr;
+#endif
 
 	char *savedir;
 	char *savename;
@@ -393,7 +393,8 @@ int menu_state(int save){
 		name = malloc(strlen(saveprefix) + 5);
 		sprintf(name, "%s.%03d", saveprefix, i);
 
-#ifndef DINGOO_NATIVE
+#ifndef OHBOY_FILE_STAT_NOT_AVAILABLE
+		/* if the file exists lookup the timestamp */
 		if(!stat(name,&fstat)){
 			time = fstat.st_mtime;
 			tstr = ctime(&time);
@@ -402,10 +403,14 @@ int menu_state(int save){
 			statebody[i] = malloc(l);
 			strcpy(statebody[i],tstr);
 			statebody[i][l-1]=0;
+#else
+		/* check if the file exists */
+		if(f=fopen(name,"rb")){
+			fclose(f);
+			statebody[i] = (char*)not_emptyslot;
+#endif /* OHBOY_FILE_STAT_NOT_AVAILABLE */
 			flags = FIELD_SELECTABLE;
-		} else
-#endif
-{
+		} else {
 			statebody[i] = (char*)emptyslot;
 			flags = save ? FIELD_SELECTABLE : 0;
 		}
@@ -436,7 +441,7 @@ int menu_state(int save){
 	}
 
 	for(i=0; i<8; i++)
-		if(statebody[i] != emptyslot) free(statebody[i]);
+		if(statebody[i] != emptyslot && statebody[i] != not_emptyslot) free(statebody[i]);
 
 	free(saveprefix);
 	return ret;

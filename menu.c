@@ -457,14 +457,14 @@ char *menu_requestdir(const char *title, const char *path){
 
 			stat(d->d_name,&s);
 
-//#ifndef  DT_DIR
-		/* can not lookup type from search result have to stat filename*/
-		strcpy(tmpfname_end, d->d_name);
-		stat(tmpfname, &s);
-		if(S_ISDIR (s.st_mode))
-//#else
-//		if ((d->d_type & DT_DIR) == DT_DIR)
-//#endif /* DT_DIR */
+#ifndef  DT_DIR
+			/* can not lookup type from search result have to stat filename*/
+			strcpy(tmpfname_end, d->d_name);
+			stat(tmpfname, &s);
+			if(S_ISDIR (s.st_mode))
+#else
+			if ((d->d_type & DT_DIR) == DT_DIR)
+#endif /* DT_DIR */
 			{
 				l = strlen(d->d_name);
 				ldirs[ldirn] = malloc(l+2);
@@ -819,7 +819,29 @@ int menu_options(){
 			sprintf(config[6],"set upscaler %i",upscale);
 			sprintf(config[7],"set frameskip %i",skip-1);
 			sprintf(config[8],"set cpuspeed %i",speed);
+			#ifdef DINGOO_NATIVE /* FIXME Windows too..... */
+			{
+				char tmp_path[PATH_MAX];
+				char *dest, *src;
+				dest = &tmp_path[0];
+				src = romdir;
+				
+				/* escape the path seperator (should escape other things too.) */
+				while(*dest = *src++)
+				{
+					if (*dest == DIRSEP_CHAR)
+					{
+						dest++;
+						*dest = DIRSEP_CHAR;
+					}
+					dest++;
+				}
+			
+				sprintf(config[9], "set romdir \"%s\"", tmp_path);
+			}
+			#else
 			sprintf(config[9],"set romdir \"%s\"",romdir);
+			#endif /* DINGOO_NATIVE */
 
 			for(i=0; i<10; i++)
 				rc_command(config[i]);

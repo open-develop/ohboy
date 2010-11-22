@@ -33,24 +33,6 @@
 
 #ifdef DINGOO_NATIVE
 
-int chdir(const char *path);
-int chdir(const char *path)
-{
-    /* NOOP */
-    return 0;
-}
-
-char *getcwd(char *buf, size_t size);
-char *getcwd(char *buf, size_t size)
-{
-    char *x=buf;
-    strcpy(buf, "b:\\");
-    /*
-    x[0]='\0';
-    */
-    return x;
-}
-
 char *ctime(const time_t *timep);
 char *ctime(const time_t *timep)
 {

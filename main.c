@@ -767,8 +767,11 @@ void ev_poll()
 				dvolume = 0;
 				osd_persist = 60;
 			} else if(event.key.keysym.sym==SDLK_MINUS){
+				//TakeScreenShot((SDL_Surface *) NULL, (char *) NULL); /* this works in game and allows volume bar to be included in the screenshot (but takes screen shot every time volume is lowered). */
 				dvolume = 0;
 				osd_persist = 60;
+			} else if (event.key.keysym.sym == SCREENSHOT_SDL_KEY){
+				TakeScreenShot((SDL_Surface *) NULL, (char *) NULL);
 			}
 			ev.type = EV_RELEASE;
 			ev.code = mapscancode(event.key.keysym.sym);

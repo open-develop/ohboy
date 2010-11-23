@@ -25,3 +25,11 @@ void osd_drawrect(int x, int y, int w, int h, int color, int rounded);
 void osd_drawtext(font_t *font, const char *text, int x, int y, int color);
 
 void gui_sleep(int s);
+
+/****************************************/
+
+/* needs SDL_keysym.h */
+#define SCREENSHOT_SDL_KEY  SDLK_PAUSE
+#define SCREENSHOT_DEFAULT_FILENAME "screenshot_ohboy_.bmp"
+void TakeScreenShot(SDL_Surface *screen_to_save, char *filename);
+

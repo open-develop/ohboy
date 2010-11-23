@@ -78,6 +78,8 @@ enum
 					ev->key = GUI_RIGHT;
 					break;
 				default:
+					if (event.type == SDL_KEYUP && event.key.keysym.sym == SCREENSHOT_SDL_KEY)
+						TakeScreenShot((SDL_Surface *) NULL, (char *) NULL);
 					return 0;
 			}
 			return 1;
@@ -371,4 +373,40 @@ void osd_drawtext(font_t *font, const char *text, int x, int y, int color){
 
 void gui_sleep(int s){
 	if(s>0) SDL_Delay(s/1000);
+}
+
+/****************************************/
+
+/*
+**  TakeScreenShot of SDL surface, only needs SDL lib
+**      surface is optional, if NULL is specified use the main video
+**      filename is optional, if NULL is specified use 
+*/
+void TakeScreenShot(SDL_Surface *screen_to_save, char *filename)
+{
+    char *local_filename=NULL;
+    SDL_Surface *local_screen=NULL;
+    
+    
+    local_screen = screen_to_save;
+    local_filename = filename;
+    
+    if (local_screen == NULL)
+    {
+        local_screen = SDL_GetVideoSurface();
+        
+        /*
+        // if there is global screen ref go grab it ...
+        extern SDL_Surface *screen;
+        
+        local_screen = screen;
+        */
+    }
+    if (local_filename == NULL)
+    {
+        local_filename = SCREENSHOT_DEFAULT_FILENAME;
+        /* TODO scan local dir and derive name? Use timestamp (note Dingoo has no clock). */
+    }
+    
+    SDL_SaveBMP(local_screen, local_filename);
 }

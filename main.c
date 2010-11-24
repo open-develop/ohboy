@@ -15,6 +15,9 @@
 
 #include <SDL/SDL.h>
 
+#include "SFont.h"
+#include "font8px.h"
+
 #include "gnuboy.h"
 #include "fb.h"
 #include "input.h"
@@ -27,6 +30,21 @@
 #include "menu.h"
 
 void ohb_loadrom(char *rom);
+
+/* fps */
+/* TODO make sdl_showfps an RC variable AND add a menu entry */
+static int sdl_showfps = 2;  /* 0 = OFF, 1 = Text only (white text over transparent) , 2 = Text in a box (white text on black background) */
+static int fps_current_count = 0; 
+static int fps_last_count = 0; 
+static int fps_last_time = 0; 
+static int fps_current_time = 0;
+static char fps_str[20] = {0};
+
+static SDL_Surface *font_bitmap_surface=NULL;
+static SFont_Font* Font=NULL;
+
+SDL_Rect myrect;
+/* fps */
 
 #define FONT_NAME "FreeUniversal-Regular.ttf"
 #define FONT_SIZE 14
@@ -558,6 +576,35 @@ void vid_end() {
 			if(osd_persist) osd_persist--;
 		}
 		SDL_UnlockSurface(screen);
+        
+        /* 
+        ** NOTE Oh Boy now has 2 font systems...
+        ** 1) the original Oh Boy ttf approach - gui_drawtext()
+        ** 2) SFont (part of SDL gnuboy)
+        ** Oh Boy uses SFont (bitmap approach) from gnuboy for FPS indicator
+        ** Rest of the GUI currently uses TTF.
+        ** TODO start using SFont in gui_drawtext(), and expose gui_drawtext() to this module.
+        */
+        if (sdl_showfps)
+        {
+            fps_current_time = SDL_GetTicks();
+            fps_current_count++;
+            snprintf(fps_str, 19, "%d FPS", fps_last_count);
+            if (sdl_showfps > 1 )
+            {
+                myrect.w = SFont_TextWidth(Font, fps_str);
+                SDL_FillRect(screen, &myrect, 0 );
+            }
+            SFont_Write(screen, Font, 0,0, fps_str);
+            if ( fps_current_time - fps_last_time >= 1000 )
+            {
+                /* reset fps count every second (not every frame) */
+                fps_last_count = fps_current_count;
+                fps_current_count = 0;
+                fps_last_time = fps_current_time;
+            }
+        }
+
 		SDL_Flip(screen);
 	}
 	framecounter++;
@@ -1027,6 +1074,19 @@ int main(int argc, char *argv[]){
 	font = font_load("etc" DIRSEP FONT_NAME, 0, FONT_SIZE);
 	if(!dialog_init(font,gui_maprgb(255,255,255)))
 		die("GUI: Could not initialise GUI (maybe missing font file)\n");
+    
+    /* fps init - start */
+    font_bitmap_surface = get_default_data_font();
+    Font = SFont_InitFont(font_bitmap_surface);
+    if(!Font)
+    {
+        die("An error occured while setting up font.");
+    }
+    myrect.x = 0;
+    myrect.y = 0;
+    myrect.w = 320;
+    myrect.h = SFont_TextHeight(Font);
+    /* fps init - end */
 
 	init_exports();
 

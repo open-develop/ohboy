@@ -36,12 +36,14 @@ OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o 
 	$(GNUBOY)/loader.o $(GNUBOY)/save.o $(GNUBOY)/debug.o $(GNUBOY)/emu.o $(GNUBOY)/sys/dingoo/main.o \
 	$(GNUBOY)/rccmds.o $(GNUBOY)/rckeys.o $(GNUBOY)/rcvars.o $(GNUBOY)/rcfile.o $(GNUBOY)/exports.o \
 	$(GNUBOY)/split.o $(GNUBOY)/inflate.o \
-	gui_sdl.o keymap.o main.o menu.o \
+	$(GNUBOY)/sys/sdl/SFont.o  \
+	gui_sdl.o keymap.o \
+	main.o menu.o \
 	./ubytegui/dialog.o ./ubytegui/font.o ./ubytegui/gui.o ./ubytegui/pixmap.o \
 
 ## NOTE inc paths are from TinyCore SDL-dev
 DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
-INCS = $(INCLUDE) -I$(GNUBOY) -I/usr/include/ -I/usr/include/freetype2/ -I/usr/include/freetype2/freetype -I/tmp/tcloop/SDL-dev/usr/local/
+INCS = $(INCLUDE) -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/ -I/usr/include/freetype2/ -I/usr/include/freetype2/freetype -I/tmp/tcloop/SDL-dev/usr/local/
 LIBS =  -lfreetype -lpng -lz -lSDL -lsml -lm -lc -ljz4740 -lgcc 
 ## NOTE png lib pngrtran.c needs fabs (float abs function) and pow, not cool... 
 

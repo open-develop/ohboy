@@ -351,7 +351,7 @@ int dialog_end(){
 
 				int s = dialog->selected;
 
-				while(++s>=0 && !(dialog->fields[s].flags & FIELD_SELECTABLE));
+				while(++s>=0 && s<=dialog->field_count && !(dialog->fields[s].flags & FIELD_SELECTABLE));
 				if(s<dialog->field_count){
 					if(s >= dialog->pos+dialog->visible_count) {
 						dialog->pos = s-dialog->visible_count+1;

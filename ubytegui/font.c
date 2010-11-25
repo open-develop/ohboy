@@ -136,8 +136,8 @@ font_t *font_load(const char* name, int index, int size)
     SFont_Font* Font=local_font; */
     
     local_font=fps_font;
+    local_font=menu_font;
     Font=local_font;
-    Font=menu_font;
     
     
     font = calloc(1, sizeof(font_t));

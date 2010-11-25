@@ -31,17 +31,19 @@ void pixmap_getargb(pixmap_t *pix, int x, int y, unsigned char *a, unsigned char
 	}
 }
 
+
 #ifdef DINGOO_NATIVE
 void die(char *fmt, ...);
 #endif /* DINGOO_NATIVE */
 
 pixmap_t *pixmap_loadpng(char* pic){
+	pixmap_t* pix=NULL;
+#ifdef UBYTE_USE_LIBPNG
 	unsigned char header[8];
 	FILE *in;
 	unsigned int width, height, bit_depth, color_type, depth, y;
 
 	png_bytep* rows;
-	pixmap_t* pix;
 
 	in = fopen(pic, "rb");
 	if(!in){
@@ -140,6 +142,9 @@ pixmap_t *pixmap_loadpng(char* pic){
 	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 	fclose(in);
 	free(rows);
+#else
+    /* TODO use code from http://www.nothings.org/stb_image.c ? */
+#endif /* UBYTE_USE_LIBPNG */
 
 	return pix;
 }

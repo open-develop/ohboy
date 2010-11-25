@@ -43,6 +43,7 @@ static char fps_str[20] = {0};
 
 static SDL_Surface *fps_font_bitmap_surface=NULL;
 static SDL_Surface *menu_font_bitmap_surface=NULL;
+static SDL_Surface *bgimage_bitmap_surface=NULL;
 SFont_Font* fps_font=NULL;
 SFont_Font* menu_font=NULL;
 
@@ -1218,6 +1219,8 @@ int main(int argc, char *argv[]){
 
 	mkdir("saves", 0777); /* FIXME lookup "savedir" rc variable and mkdir that instead? */
 
+
+#ifdef UBYTE_USE_LIBPNG
 	pix = pixmap_loadpng("etc"DIRSEP"launch.png");
 	if(pix){
 		SDL_LockSurface(screen);
@@ -1227,6 +1230,48 @@ int main(int argc, char *argv[]){
 		pixmap_free(pix);
 		SDL_UnlockSurface(screen);
 	}
+#else
+    /*
+    ** Use SDL_LoadBMP() from base SDL 
+    ** TODO use IMG_Load() from SDL_image
+    */
+    
+    SDL_Surface *tmp_surface=NULL;
+
+    tmp_surface = SDL_LoadBMP("etc"DIRSEP"launch.bmp");
+    if (tmp_surface)
+    {
+        bgimage_bitmap_surface = SDL_DisplayFormat(tmp_surface);
+        SDL_FreeSurface(tmp_surface);
+        if (bgimage_bitmap_surface)
+        {
+            /*
+            SDL_Rect src, dest;
+            
+            src.x = 0;
+            src.y = 0;
+            src.w = bgimage_bitmap_surface->w;
+            src.h = bgimage_bitmap_surface->h;
+             
+            dest.x = 0;
+            dest.y = 0;
+            dest.w = bgimage_bitmap_surface->w;
+            dest.h = bgimage_bitmap_surface->h;
+            */
+            
+            SDL_UnlockSurface(screen);
+            SDL_BlitSurface(bgimage_bitmap_surface, NULL, screen, NULL);
+            /*
+            SDL_BlitSurface(bgimage_bitmap_surface, &src, screen, &dest);
+            */
+            SDL_FreeSurface(bgimage_bitmap_surface);
+            SDL_Flip(screen);
+            /*
+            SDL_LockSurface(screen);  // for some reason this prevents SFont from displaying.....
+            */
+        }
+    }
+#endif /* UBYTE_USE_LIBPNG */
 
 	do{
 		rom = launcher();

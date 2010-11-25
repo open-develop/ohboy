@@ -22,16 +22,24 @@ OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o 
 ## NOTE inc paths are from TinyCore SDL-dev
 DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
 INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/ -I/tmp/tcloop/SDL-dev/usr/local/
-LIBS =  -lSDLmain -lSDL -lpng -lz
+LIBS =  -lSDLmain -lSDL
 
-# USE_TREETYPE_TTF enables the se of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
+# USE_FREETYPE_TTF enables the se of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
 # quality of results on screen is excellent, if not set SFont is used.
 # SFont can have excellent results but the bitmpa font supplied at the moment is not pretty.
-#USE_TREETYPE_TTF = True
-ifdef USE_TREETYPE_TTF
+#USE_FREETYPE_TTF = True
+ifdef USE_FREETYPE_TTF
 	INCS += -I/usr/include/freetype2/ -I/usr/include/freetype2/freetype
 	LIBS +=  -lfreetype
 	DEFS += -DUBYTE_USE_FREETYPE
+endif
+
+# USE_LIBPNG if set will use libpng AND attempt to load png file from "etc".
+# if not set will use attempt to load bmp file "etc".
+#USE_LIBPNG = True
+ifdef USE_LIBPNG
+	DEFS += -DUBYTE_USE_LIBPNG
+	LIBS += -lpng
 endif
 
 MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)

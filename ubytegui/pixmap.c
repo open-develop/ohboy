@@ -1,7 +1,10 @@
 
 #include "stdlib.h"
+#include <string.h>
 
+#ifdef UBYTE_USE_LIBPNG
 #include "png.h"
+#endif /* UBYTE_USE_LIBPNG */
 #include "pixmap.h"
 
 pixmap_t *pixmap_new(int w, int h, int pelsize){
@@ -143,6 +146,7 @@ pixmap_t *pixmap_loadpng(char* pic){
 	fclose(in);
 	free(rows);
 #else
+    (void) pic;
     /* TODO use code from http://www.nothings.org/stb_image.c ? */
 #endif /* UBYTE_USE_LIBPNG */
 

@@ -358,6 +358,7 @@ void osd_drawrect(int x, int y, int w, int h, int color, int rounded){
 }
 
 void osd_drawtext(font_t *font, const char *text, int x, int y, int color){
+#ifdef UBYTE_USE_FREETYPE /* this is a nasty hack,... fixme! */
 	glyph_t *glyph;
 
 	if(!font || !text) return;
@@ -368,6 +369,9 @@ void osd_drawtext(font_t *font, const char *text, int x, int y, int color){
 		x+= glyph->advance;
 		text++;
 	}
+#else
+    gui_drawtext(font, text, x, y, color, 0);
+#endif /* UBYTE_USE_FREETYPE */
 }
 
 

@@ -17,6 +17,7 @@
 
 #include "SFont.h"
 #include "font8px.h"
+#include "font14px.h"
 
 #include "gnuboy.h"
 #include "fb.h"
@@ -40,8 +41,10 @@ static int fps_last_time = 0;
 static int fps_current_time = 0;
 static char fps_str[20] = {0};
 
-static SDL_Surface *font_bitmap_surface=NULL;
-static SFont_Font* Font=NULL;
+static SDL_Surface *fps_font_bitmap_surface=NULL;
+static SDL_Surface *menu_font_bitmap_surface=NULL;
+SFont_Font* fps_font=NULL;
+SFont_Font* menu_font=NULL;
 
 SDL_Rect myrect;
 /* fps */
@@ -592,10 +595,10 @@ void vid_end() {
             snprintf(fps_str, 19, "%d FPS", fps_last_count);
             if (sdl_showfps > 1 )
             {
-                myrect.w = SFont_TextWidth(Font, fps_str);
+                myrect.w = SFont_TextWidth(fps_font, fps_str);
                 SDL_FillRect(screen, &myrect, 0 );
             }
-            SFont_Write(screen, Font, 0,0, fps_str);
+            SFont_Write(screen, fps_font, 0,0, fps_str);
             if ( fps_current_time - fps_last_time >= 1000 )
             {
                 /* reset fps count every second (not every frame) */
@@ -1071,22 +1074,53 @@ int main(int argc, char *argv[]){
 	sdl_joy = SDL_JoystickOpen(0);
 	SDL_JoystickEventState(SDL_ENABLE);
 
-	font = font_load("etc" DIRSEP FONT_NAME, 0, FONT_SIZE);
-	if(!dialog_init(font,gui_maprgb(255,255,255)))
-		die("GUI: Could not initialise GUI (maybe missing font file)\n");
+    /* Menu SFont start */
+    /*
+    font_bitmap_surface = get_free_universal_14_1bpp_font()
+    menu_font = SFont_InitFont(font_bitmap_surface);
+    menu_font_bitmap_surface = get_free_universal_14_1bpp_font();
+    */
+    
+    /*
+    menu_font_bitmap_surface = SDL_LoadBMP("FreeUniversal-Regular_14.bmp");
+    menu_font_bitmap_surface = SDL_LoadBMP("14P_Copperplate_Blue.bmp");// too wide (and maybe tall?)
+    menu_font_bitmap_surface = SDL_LoadBMP("14P_Arial_Plain_Red.bmp"); // too big
+    menu_font_bitmap_surface = SDL_LoadBMP("smallstone.bmp"); // good size, not very clear (colours?)
+    */
+    if (!menu_font_bitmap_surface)
+    {
+        menu_font_bitmap_surface = get_font14px_font();
+        /*
+        SDL_SaveBMP(menu_font_bitmap_surface, "menu_font_bitmap_surface.bmp");
+        */
+    }
+    menu_font = SFont_InitFont(menu_font_bitmap_surface);
+    if(!menu_font)
+    {
+        die("An error occured while setting up menu font.");
+    }
+    /* Menu SFont start */
     
     /* fps init - start */
-    font_bitmap_surface = get_default_data_font();
-    Font = SFont_InitFont(font_bitmap_surface);
-    if(!Font)
+    fps_font_bitmap_surface = get_default_data_font();
+    /*
+    SDL_SaveBMP(fps_font_bitmap_surface, "fps_font_bitmap_surface.bmp");
+    */
+    fps_font = SFont_InitFont(fps_font_bitmap_surface);
+    if(!fps_font)
     {
-        die("An error occured while setting up font.");
+        die("An error occured while setting up FPS font.");
     }
     myrect.x = 0;
     myrect.y = 0;
     myrect.w = 320;
-    myrect.h = SFont_TextHeight(Font);
+    myrect.h = SFont_TextHeight(fps_font);
     /* fps init - end */
+    
+	font = font_load("etc" DIRSEP FONT_NAME, 0, FONT_SIZE);
+	if(!dialog_init(font,gui_maprgb(255,255,255)))
+		die("GUI: Could not initialise GUI (maybe missing font file)\n");
+    
 
 	init_exports();
 

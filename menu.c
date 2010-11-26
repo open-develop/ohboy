@@ -31,6 +31,8 @@
 
 #ifdef DINGOO_NATIVE
 
+#include <jz4740/cpu.h>  /* for cpu clock */
+
 char *ctime(const time_t *timep);
 char *ctime(const time_t *timep)
 {
@@ -580,6 +582,9 @@ const char *lframeskip[] = {"Auto","Off","1","2","3","4",NULL};
 #if WIZ
 const char *lclockspeeds[] = {"Default","250 mhz","300 mhz","350 mhz","400 mhz","450 mhz","500 mhz","550 mhz","600 mhz","650 mhz","700 mhz","750 mhz",NULL};
 #endif
+#ifdef DINGOO_NATIVE
+const char *lclockspeeds[] = { "Default", "200 mhz", "250 mhz", "300 mhz", "336 mhz", "360 mhz", "400 mhz", NULL };
+#endif
 const char *volume_levels[] = {"0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%", NULL};
 int volume_hardware = 100 / 10; /* todo make this an rc variable */
 
@@ -593,13 +598,35 @@ int menu_options(){
 	char *tmp=0, *romdir=0;
 
 	FILE *file;
+#ifdef DINGOO_NATIVE
+    /*
+    **  100Mhz once caused Dingoo A320 MIPS to hang,
+    **  when 100Mhz worked BW GB (Adjustris) game was running at 32 fps (versus 60 at 200Mhz).
+    **  150Mhz has never worked on my Dingoo A320.
+    */
+    uintptr_t dingoo_clock_speeds[] = { 200000000, 250000000, 300000000, 336000000, 360000000, 400000000 /* , 430000000 Should not be needed */ };
+    /*
+    ** under-under clock option is for GB games.
+    ** GB games can often be ran under the already
+    ** underclocked Dingoo speed of 336Mhz
+    */
+
+    bool dingoo_clock_change_result;
+	uintptr_t tempCore=336000000; /* default Dingoo A320 clock speed */
+	uintptr_t tempMemory=112000000; /* default Dingoo A320 memory speed */
+	cpu_clock_get(&tempCore, &tempMemory);
+#endif /* DINGOO_NATIVE */
 
 	pal = findpal();
 	cfilter = rc_getint("colorfilter");
 	if(cfilter && !rc_getint("filterdmg")) cfilter = 2;
 	upscale = rc_getint("upscaler");
 	skip = rc_getint("frameskip")+1;
+#ifdef DINGOO_NATIVE
+	speed = 0;
+#else
 	speed = rc_getint("cpuspeed")/50 - 4;
+#endif /* DINGOO_NATIVE */
 	if(speed<0) speed = 0;
 	if(speed>11) speed = 11;
 
@@ -614,7 +641,7 @@ int menu_options(){
 	dialog_option("Color Filter",lcolorfilter,&cfilter);
 	dialog_option("Upscaler",lupscaler,&upscale);
 	dialog_option("Frameskip",lframeskip,&skip);
-#if WIZ
+#if defined(WIZ) || defined(DINGOO_NATIVE)
 	dialog_option("Clock Speed",lclockspeeds,&speed);
 #else
 	dialog_text("Clock Speed","Default",0);
@@ -644,7 +671,31 @@ int menu_options(){
 			#endif /* GNBOY_HARDWARE_VOLUME */
 			palp = &gbpal[pal];
 			if(speed)
+			{
+#ifdef DINGOO_NATIVE
+                /*
+                ** For now do NOT plug in into settings system, current
+                ** (Wiz) speed system is focused on multiples of 50Mhz.
+                ** Dingoo default clock speed is 336Mhz (CPU certified for
+                ** 360, 433MHz is supposed to be possible).
+                ** Only set clock speed if changed in options each and
+                ** everytime - do not use config file
+                */
+                --speed;
+                /* check menu response is withing the preset array range/size */
+                if (speed > (sizeof(dingoo_clock_speeds)/sizeof(uintptr_t) - 1) )
+                    speed = 0;
+                
+                tempCore = dingoo_clock_speeds[speed];
+                dingoo_clock_change_result = cpu_clock_set(tempCore);
+                
+                tempCore=tempMemory=0;
+                cpu_clock_get(&tempCore, &tempMemory); /* currently unused */
+                /* TODO display clock speed next to on screen FPS indicator */
+#endif /* DINGOO_NATIVE */
+    
 				speed = speed*50 + 200;
+			}
 			sprintf(config[0],"set dmg_bgp 0x%.6x 0x%.6x 0x%.6x 0x%.6x", palp->dmg_bgp[0], palp->dmg_bgp[1], palp->dmg_bgp[2], palp->dmg_bgp[3]);
 			sprintf(config[1],"set dmg_wndp 0x%.6x 0x%.6x 0x%.6x 0x%.6x",palp->dmg_wndp[0],palp->dmg_wndp[1],palp->dmg_wndp[2],palp->dmg_wndp[3]);
 			sprintf(config[2],"set dmg_obp0 0x%.6x 0x%.6x 0x%.6x 0x%.6x",palp->dmg_obp0[0],palp->dmg_obp0[1],palp->dmg_obp0[2],palp->dmg_obp0[3]);

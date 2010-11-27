@@ -103,10 +103,13 @@ void dialog_begin(const char* title, const char* status){
 
 static field_t *dialog_addfield(){
 	field_t *field;
+#ifndef DINGOO_NATIVE
+	/* Really if notbyte aligned platform */
 	if((int)&dialog->fields[dialog->field_count] >= dialog->sz){
 		dialog->sz+= sizeof(field_t)*16;
 		dialog = realloc(dialog, dialog->sz);
 	}
+#endif /* DINGOO_NATIVE */
 	field = &(dialog->fields[dialog->field_count]);
 	dialog->field_count++;
 	memset(field, 0, sizeof(field_t));

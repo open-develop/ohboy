@@ -42,6 +42,8 @@ ifdef USE_LIBPNG
 	LIBS += -lpng
 endif
 
+DEFS += -DGNUBOY_NO_SCREENSHOT
+
 MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
 
 all: ohboy

@@ -14,6 +14,16 @@ static int dfg;
 static int dpad;
 static pixmap_t *dscrollu, *dscrolld, *doptl, *doptr;
 
+#define TEXT_LINE_OFFSET 4
+
+
+#ifdef USE_FREETYPE_TTF
+#define HIGHLIGHT_RECT_OFFSET 0
+#else
+    /* using SFont */
+#define HIGHLIGHT_RECT_OFFSET 4
+#endif /* USE_FREETYPE_TTF */
+
 int dialog_maxtextw(){
 	return gui.w-dpad*2;
 }
@@ -164,7 +174,7 @@ static int dialog_drawtitle(){
 	gui_setclip(0,0,gui.w,dialog->title_h);
 	gui_cls();
 	gui_drawtext(dfont,dialog->title,dialog->title_x,dfont->height,color,0);
-	gui_drawrect(0,dfont->height+4,gui.w,1,color,0);
+	gui_drawrect(0,dfont->height+TEXT_LINE_OFFSET,gui.w,1,color,0);
 	if(dialog->pos > 0){
 		gui_drawpixmap(dscrollu, pad/4, dfont->height-dscrollu->height, color, 0);
 	}
@@ -192,7 +202,7 @@ static int dialog_drawfield(int i){
 	if(i==dialog->selected-dialog->pos){
 		w = font_textwidth(dfont,field->prompt)+pad2;
 		if(dialog->prompt_w < w) w = dialog->prompt_w;
-		gui_drawrect(dialog->prompt_x+hpad,y,w-pad,dialog->field_h,color,1);
+		gui_drawrect(dialog->prompt_x+hpad, y+HIGHLIGHT_RECT_OFFSET, w-pad, dialog->field_h, color, 1);
 		if(field->type == FIELD_OPTION){
 			gui_drawpixmap(doptl,dialog->body_x,y+dfont->ascent-doptl->height,color,0);
 			w = font_textwidth(dfont,field->body);
@@ -217,7 +227,7 @@ static int dialog_drawstatus(){
 	gui_cls();
 
 	gui_drawtext(dfont,dialog->status,dialog->status_x,gui.h+dfont->descent,color,0);
-	gui_drawrect(0,gui.h-dfont->height-4,gui.w,1,color,0);
+	gui_drawrect(0,gui.h-dfont->height-TEXT_LINE_OFFSET,gui.w,1,color,0);
 
 	if(dialog->pos < dialog->field_count-dialog->visible_count){
 		gui_drawpixmap(dscrolld,pad/4,gui.h+dfont->descent-dscrolld->height,color,0);

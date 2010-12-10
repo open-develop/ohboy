@@ -24,9 +24,9 @@ DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
 INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/ -I/tmp/tcloop/SDL-dev/usr/local/
 LIBS =  -lSDLmain -lSDL
 
-# USE_FREETYPE_TTF enables the se of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
+# USE_FREETYPE_TTF enables the use of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
 # quality of results on screen is excellent, if not set SFont is used.
-# SFont can have excellent results but the bitmpa font supplied at the moment is not pretty.
+# SFont can have excellent results but the bitmap font supplied at the moment is not pretty.
 #USE_FREETYPE_TTF = True
 ifdef USE_FREETYPE_TTF
 	INCS += -I/usr/include/freetype2/ -I/usr/include/freetype2/freetype

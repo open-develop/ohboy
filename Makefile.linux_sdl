@@ -1,5 +1,4 @@
 
-
 CC = gcc
 LD = $(CC)
 
@@ -23,6 +22,12 @@ OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o 
 DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
 INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/ -I/tmp/tcloop/SDL-dev/usr/local/
 LIBS =  -lSDLmain -lSDL
+
+
+## Requirements for (optional) .zip support
+## Disable with GNUBOY_USE_MINIZIP defined
+OBJS += $(GNUBOY)/unzip/unzip.o $(GNUBOY)/unzip/ioapi.o
+LIBS += -lz
 
 # USE_FREETYPE_TTF enables the use of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
 # quality of results on screen is excellent, if not set SFont is used.

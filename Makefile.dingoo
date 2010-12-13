@@ -48,6 +48,12 @@ INCS = $(INCLUDE) -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/
 LIBS =   -lSDL -lsml -lc -ljz4740 -lgcc
 ## NOTE png lib pngrtran.c needs fabs (float abs function) and pow, not cool... 
 
+## Requirements for (optional) .zip support
+## Disable with GNUBOY_USE_MINIZIP defined
+OBJS += $(GNUBOY)/unzip/unzip.o $(GNUBOY)/unzip/ioapi.o
+LIBS += -lz
+CFLAGS += -DUSE_FILE32API
+
 # USE_LIBPNG if set will use libpng AND attempt to load png file from "etc".
 # if not set will use attempt to load bmp file "etc".
 #USE_LIBPNG = True

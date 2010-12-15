@@ -14,6 +14,9 @@
 #endif
 
 #include <SDL/SDL.h>
+#ifdef OHBOY_USE_SDL_IMAGE
+#include "SDL/SDL_image.h"
+#endif /* OHBOY_USE_SDL_IMAGE */
 
 #include "SFont.h"
 #include "font8px.h"
@@ -1088,9 +1091,19 @@ int main(int argc, char *argv[]){
     menu_font_bitmap_surface = SDL_LoadBMP("14P_Arial_Plain_Red.bmp"); // too big
     menu_font_bitmap_surface = SDL_LoadBMP("smallstone.bmp"); // good size, not very clear (colours?)
     */
-    menu_font_bitmap_surface = SDL_LoadBMP("etc"DIRSEP"ohboy_font14.bmp");
+#ifdef OHBOY_USE_SDL_IMAGE
     if (!menu_font_bitmap_surface)
     {
+        menu_font_bitmap_surface = IMG_Load("etc"DIRSEP"ohboy_font14.png");
+    }
+#endif /* OHBOY_USE_SDL_IMAGE */
+    if (!menu_font_bitmap_surface)
+    {
+        menu_font_bitmap_surface = SDL_LoadBMP("etc"DIRSEP"ohboy_font14.bmp");
+    }
+    if (!menu_font_bitmap_surface)
+    {
+        /* use internal font */
         menu_font_bitmap_surface = get_font14px_font();
         /*
         SDL_SaveBMP(menu_font_bitmap_surface, "menu_font_bitmap_surface.bmp");

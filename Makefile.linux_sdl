@@ -23,6 +23,14 @@ DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
 INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/ -I/tmp/tcloop/SDL-dev/usr/local/
 LIBS =  -lSDLmain -lSDL
 
+# Use SDL_image - for use with SFont (rather than FREETYPE_TTF)
+# NOTE can still use SFont without SDL_image
+USE_SDL_IMAGE = True
+ifdef USE_SDL_IMAGE
+	undef USE_FREETYPE_TTF
+	LIBS +=  -lSDL_image
+	DEFS += -DOHBOY_USE_SDL_IMAGE
+endif
 
 ## Requirements for (optional) .zip support
 ## Disable with GNUBOY_USE_MINIZIP defined

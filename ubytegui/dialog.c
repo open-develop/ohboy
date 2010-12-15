@@ -17,12 +17,12 @@ static pixmap_t *dscrollu, *dscrolld, *doptl, *doptr;
 #define TEXT_LINE_OFFSET 4
 
 
-#ifdef USE_FREETYPE_TTF
+#ifdef UBYTE_USE_FREETYPE
 #define HIGHLIGHT_RECT_OFFSET 0
 #else
     /* using SFont */
 #define HIGHLIGHT_RECT_OFFSET 4
-#endif /* USE_FREETYPE_TTF */
+#endif /* UBYTE_USE_FREETYPE */
 
 int dialog_maxtextw(){
 	return gui.w-dpad*2;
@@ -188,7 +188,7 @@ static int dialog_drawfield(int i){
 
 	y = i*dialog->field_h+dialog->title_h;
 
-	gui_setclip(0,y,gui.w,dialog->field_h);
+	gui_setclip(0, y+HIGHLIGHT_RECT_OFFSET, gui.w, dialog->field_h+HIGHLIGHT_RECT_OFFSET);
 	gui_cls();
 
 	pad = dpad;
@@ -215,7 +215,8 @@ static int dialog_drawfield(int i){
 	gui_setclip(dialog->prompt_x+pad, y, dialog->prompt_w-pad2, dialog->field_h);
 	gui_drawtext(dfont,field->prompt,dialog->prompt_x+pad,y+dfont->ascent,color,invert);
 	gui_setclip(dialog->body_x+pad, y, dialog->body_w-pad2, dialog->field_h);
-	gui_drawtext(dfont,field->body,dialog->body_x+pad,y+dfont->ascent,color,0);
+	if (field->body)
+		gui_drawtext(dfont,field->body,dialog->body_x+pad,y+dfont->ascent,color,0);
 }
 
 static int dialog_drawstatus(){

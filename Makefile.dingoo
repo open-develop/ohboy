@@ -48,6 +48,16 @@ INCS = $(INCLUDE) -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/
 LIBS =   -lSDL -lsml -lc -ljz4740 -lgcc
 ## NOTE png lib pngrtran.c needs fabs (float abs function) and pow, not cool... 
 
+
+# Use SDL_image - for use with SFont (rather than FREETYPE_TTF)
+# NOTE can still use SFont without SDL_image
+USE_SDL_IMAGE = True
+ifdef USE_SDL_IMAGE
+	#LIBS +=  -lSDL_image  # Not needed with Native SDK, SDL_image is built into the Native SDL lib
+	LIBS += -lpng -lz -lSDL -lsml -lm -lc -ljz4740 -lgcc
+	CFLAGS += -DOHBOY_USE_SDL_IMAGE
+endif
+
 ## Requirements for (optional) .zip support
 ## Disable with GNUBOY_USE_MINIZIP defined
 OBJS += $(GNUBOY)/unzip/unzip.o $(GNUBOY)/unzip/ioapi.o
@@ -56,6 +66,7 @@ CFLAGS += -DUSE_FILE32API
 
 # USE_LIBPNG if set will use libpng AND attempt to load png file from "etc".
 # if not set will use attempt to load bmp file "etc".
+# NOTE also see USE_SDL_IMAGE - which is not limited to only png (however SDL_image does need libpng)
 #USE_LIBPNG = True
 ifdef USE_LIBPNG
 	DEFS += -DUBYTE_USE_LIBPNG
@@ -67,7 +78,7 @@ endif
 # USE_FREETYPE_TTF enables the se of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
 # quality of results on screen is excellent, if not set SFont is used.
 # SFont can have excellent results but the bitmpa font supplied at the moment is not pretty.
-USE_FREETYPE_TTF = True
+#USE_FREETYPE_TTF = True
 ifdef USE_FREETYPE_TTF
 	INCS += -I/usr/include/freetype2/ -I/usr/include/freetype2/freetype
 	LIBS +=  -lfreetype

@@ -27,7 +27,6 @@ LIBS =  -lSDLmain -lSDL
 # NOTE can still use SFont without SDL_image
 USE_SDL_IMAGE = True
 ifdef USE_SDL_IMAGE
-	undef USE_FREETYPE_TTF
 	LIBS +=  -lSDL_image
 	DEFS += -DOHBOY_USE_SDL_IMAGE
 endif

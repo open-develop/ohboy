@@ -77,11 +77,13 @@ static un16 vid_frame[160*144];
 SDL_Surface *screen;
 int framecounter = 0;
 
+#ifndef GNUBOY_DISABLE_SDL_SOUND
 struct pcm pcm;
 rcvar_t pcm_exports[] =
 {
 	RCV_END
 };
+#endif /* GNUBOY_DISABLE_SDL_SOUND */
 
 #define PCM_BUFFER 4096
 #define PCM_FRAME 512
@@ -200,16 +202,16 @@ void vid_init() {
 	vid_fb.cc[2].l = screen->format->Bshift;
 	SDL_UnlockSurface(screen);
 
-	fb.w = 160;
-	fb.h = 144;
+	fb.w = 160; /* Gameboy native res - width */
+	fb.h = 144; /* Gameboy native res - height */
 	fb.pelsize = 2;
 	fb.pitch = 320;
 	fb.indexed = 0;
-	fb.cc[0].r = screen->format->Rloss+2;
+	fb.cc[0].r = screen->format->Rloss;
 	fb.cc[0].l = screen->format->Rshift;
-	fb.cc[1].r = screen->format->Gloss+2;
+	fb.cc[1].r = screen->format->Gloss;
 	fb.cc[1].l = screen->format->Gshift;
-	fb.cc[2].r = screen->format->Bloss+2;
+	fb.cc[2].r = screen->format->Bloss;
 	fb.cc[2].l = screen->format->Bshift;
 	fb.ptr = vid_frame;
 	fb.enabled = 1;
@@ -218,8 +220,16 @@ void vid_init() {
 }
 
 void vid_setpal(int i, int r, int g, int b){
+    /*
+    **  complete NOOP
+    **  internal gameboy framebuffer fb.ptr/vid_frame[] is used instead
+    **  and then used to blit to screen at vid_end()
+    */
 }
 
+/*
+** This appears to be the GPL algorithm described at http://scale2x.sourceforge.net/algorithm.html
+*/
 #define SCALE3X(l,r,t,b,E0,E1,E2,E3,E4,E5,E6,E7,E8)\
 A = src[t+l], B = src[t], C = src[t+r];\
 D = src[ l ], E = src[0], F = src[ r ];\
@@ -374,10 +384,18 @@ void ohb_render(){
 
 static un16 buffer[3][240];
 
+/*
+** Appears to expect source/dest framebuffer pixels to be 16bpp
+** But expects source to be in RGB343 format. Looks like it may expect dest to be RGB565.
+** 1.5 scaler with "smoothing", i.e. 160x144 -> 239x215 BUT centered/centred in a 320x240 screen.
+** It looks like it does a 2 pass conversion:
+**      1) increase 3x
+**      2) decrease by 2x
+*/
 void ohb_scale3x(){
 
 	un16 *dst = buffer[0];
-	un16 *src = fb.ptr;
+	un16 *src = (un16*)fb.ptr;
 	un16 *base = (un16*)vid_fb.ptr + 3880;
 	int x,y;
 
@@ -417,7 +435,7 @@ void ohb_scale3x(){
 		memcpy(base,buffer[0],480);
 		memcpy(base+320,buffer[1],480);
 		memcpy(base+640,buffer[2],480);
-		dst=buffer;
+		dst=(un16*)buffer;
 		base += 960;
 
 		memset(buffer,0,480*3);
@@ -455,11 +473,16 @@ void ohb_scale3x(){
 	memcpy(base+640,buffer[2],480);
 }
 
+/*
+** Appears to expect source/dest framebuffer pixels to be 16bpp
+** But expects source to be in RGB343 format. Looks like it may expect dest to be RGB565.
+** 1.5 scaler, i.e. 160x144 -> 239x215 BUT centered/centred in a 320x240 screen.
+*/
 void ohb_render(){
 
 	un16 *mix, *buf;
 
-	un16 *src = fb.ptr;
+	un16 *src = (un16*)fb.ptr;
 	un16 *dst = (un16*)vid_fb.ptr + 3880;
 	int x,y;
 
@@ -486,6 +509,167 @@ void ohb_render(){
 	}
 }
 #endif
+
+/****************************************************************/
+/*
+**  Ayla (Paul Cercueil) scaler code
+**  Needs GCC (__builtin_prefetch dependency)
+**  Known to work in little endian (for instance x86 and Dingoo A320 MIPS)
+**  This is a fast fullscreen 160x144 -> 320x240 (it does not preserve aspect ratio).
+**  Contrary to the pointer types in the function api signature,
+**  it expects framebuffer pixels to be 16bit.
+**  Appears to expect RGB565 for both source and dest.
+**
+**  NOTE there is a bug, the bottom 16x2 pixels in the
+**  320x240 window are "blank". Bottom row is black, row above is gray/grey.
+**  Most visible in PD game adjustris.gb
+*/
+
+
+/* Upscale from 160x144 to 320x240 */
+void gb_upscale(uint32_t *to, uint32_t *from) {
+    uint32_t reg1, reg2, reg3, reg4;
+    unsigned int x,y;
+
+    /* Little explanation:
+     * we transform three lines of pixels into five lines.
+     * Each line has twice the number of pixels.
+     * So each turn, we read two pixels (2 * 16-bit pixel) from the upper line,
+     * two from the middle line, and two from the bottom line.
+     * Each pixel from those lines will be doubled and added to the first, third or fifth
+     * line on the output.
+     * The pixels composing lines two and four will be calculated as the average between
+     * the pixels above them and the pixels under them.
+     * Easy isn't it?
+     */
+
+    from += 4;
+    for (y=0; y < 240/5; y++) {
+        for(x=0; x < 320/4; x++) {
+            __builtin_prefetch(to+4, 1);
+
+            reg2 = *from;
+
+            // first pixel, upper line => reg1
+            reg1 = reg2 & 0xffff0000;
+            reg1 |= reg1 >> 16;
+            *(to+1) = reg1;
+            reg1 = (reg1 & 0xf7def7de) >> 1;
+
+            // second pixel, upper line => reg2
+            reg2 = reg2 & 0xffff;
+            reg2 |= reg2 << 16;
+            *to = reg2;
+            reg2 = (reg2 & 0xf7def7de) >> 1;
+
+            reg4 = *(from + 160/2);
+
+            // first pixel, middle line => reg3
+            reg3 = reg4 & 0xffff0000;
+            reg3 |= reg3 >> 16;
+            *(to + 2*320/2 +1) = reg3;
+            reg3 = (reg3 & 0xf7def7de) >> 1;
+
+            // second pixel, middle line => reg4
+            reg4 = reg4 & 0xffff;
+            reg4 |= reg4 << 16;
+            *(to + 2*320/2) = reg4;
+            reg4 = (reg4 & 0xf7def7de) >> 1;
+
+            // We calculate the first pixel of the 2nd output line.
+            *(to + 320/2 +1) = reg1 + reg3;
+
+            // We calculate the second pixel of the 2nd output line.
+            *(to + 320/2) = reg2 + reg4;
+
+            reg2 = *(from++ + 2*160/2);
+
+            // first pixel, bottom line => reg1
+            reg1 = reg2 & 0xffff0000;
+            reg1 |= reg1 >> 16;
+            *(to + 4*320/2 +1) = reg1;
+            reg1 = (reg1 & 0xf7def7de) >> 1;
+
+            // second pixel, bottom line => reg2
+            reg2 = reg2 & 0xffff;
+            reg2 |= reg2 << 16;
+            *(to + 4*320/2) = reg2;
+            reg2 = (reg2 & 0xf7def7de) >> 1;
+
+            // We calculate the two pixels of the 4th line.
+            *(to++ + 3*320/2) = reg2 + reg4;
+            *(to++ + 3*320/2) = reg1 + reg3;
+        }
+        to += 4*320/2;
+        from += 2*160/2;
+    }
+}
+/****************************************************************/
+
+/*
+** Assumes 16bpp.
+** Assumes src pixels are in the same format as the dest pixels.
+** Copies gameboy 160x144 to screen, can be used to copy to arbitary rectangle
+** (for example, the center/centre of a 320x240 screen)
+*/
+void ohb_no_scale(){
+    /* No scaling */
+    /*
+    **  TODO add frame support :-)
+    **  Need a way to paint the first time (and after menu),
+    **  e.g. tie into dirty flag for physical fb (vid_fb.dirty)
+    */
+
+#define NO_SCALE_OFFSET 11600 /* (320 - 160) / 2)  + 240*((240 - 144) / 2) == 80 + 48 == middle('ish) of screen */
+    /* could make NO_SCALE_OFFSET a variable and count pixels until transparent is hit (or some other chroma-key color/colour) */
+	un16 *src = (un16 *) fb.ptr; /* NOTE this needs to be byte aligned! */
+	un16 *dst = (un16*) vid_fb.ptr + NO_SCALE_OFFSET;
+	int x=0, y=0;
+
+	for(y=0; y<144; y++){
+		memcpy(dst, src, 2*160);
+		src += 160;
+		dst += 320;
+	}
+}
+
+/*
+** Assumes 16bpp. RGB565
+** Assumes src pixels are in the same format as the dest pixels.
+** Fast, full screen 320x240 (only), no aspect ratio preservation
+*/
+void ohb_ayla_dingoo_scale(){
+    /* Full screen scaling (i.e. does NOT preserve aspect ratio) */
+
+	un16 *src = (un16 *) fb.ptr;
+	un16 *dst = (un16*)vid_fb.ptr /* + 3880 */;
+	int x,y;
+
+	gb_upscale((uint32_t *) dst, (uint32_t *) src);
+}
+
+void scaler_init(int scaler_number){
+	switch (upscaler){
+		case 1: /* 1.5 scaler */
+		case 2: /* 1.5 scaler with some smoothing ala scale3x / scale2x */
+			/* RGB343 */
+			fb.cc[0].r = screen->format->Rloss+2;
+			fb.cc[1].r = screen->format->Gloss+2;
+			fb.cc[2].r = screen->format->Bloss+2;
+			break;
+		case 3: /* Ayla full screen 320x240 (no aspect ration preservation) */
+		case 0: /* no scale, that is, native */
+		default:
+			/* RGB565 */
+			fb.cc[0].r = screen->format->Rloss;
+			fb.cc[1].r = screen->format->Gloss;
+			fb.cc[2].r = screen->format->Bloss;
+			//ohb_ayla_dingoo_scale();
+			break;
+	}
+	vid_fb.dirty = 1;
+	pal_dirty();
+}
 
 void vid_preinit(){
 }
@@ -569,13 +753,21 @@ void vid_end() {
 			vid_fb.dirty = 0;
 		}
 
-#define USE_OHBOY_SCALE
-#ifdef USE_OHBOY_SCALE
-		if(upscaler)
-			ohb_scale3x();
-		else
-			ohb_render();
-#endif /* USE_OHBOY_SCALE */
+		switch (upscaler){
+			case 1:
+				ohb_render();
+				break;
+			case 2:
+				ohb_scale3x();
+				break;
+			case 3:
+				ohb_ayla_dingoo_scale();
+				break;
+			case 0:
+			default:
+				ohb_no_scale();
+				break;
+		}
 
 		if(osd_persist || dvolume){
 			osd_volume();
@@ -585,11 +777,11 @@ void vid_end() {
 		SDL_UnlockSurface(screen);
         
         /* 
-        ** NOTE Oh Boy now has 2 font systems...
+        ** NOTE Oh Boy now has the option of 2 font systems...
         ** 1) the original Oh Boy ttf approach - gui_drawtext()
         ** 2) SFont (part of SDL gnuboy)
         ** Oh Boy uses SFont (bitmap approach) from gnuboy for FPS indicator
-        ** Rest of the GUI currently uses TTF.
+        ** Rest of the GUI (menu) can either use TTF or SFont.
         ** TODO start using SFont in gui_drawtext(), and expose gui_drawtext() to this module.
         */
         if (sdl_showfps)
@@ -627,6 +819,7 @@ static void audio_callback(void *d, byte *stream, int len) {
 	pcm_buffered -= pcm.len;
 }
 
+#ifndef GNUBOY_DISABLE_SDL_SOUND
 void pcm_init(){
 	SDL_AudioSpec as;
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
@@ -703,6 +896,8 @@ return 0; /* no sound */
 void pcm_close() {
 	SDL_CloseAudio();
 }
+#endif /* GNUBOY_DISABLE_SDL_SOUND */
+
 
 void *sys_timer()
 {

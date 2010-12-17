@@ -29,6 +29,8 @@
 #include "lcd.h"
 
 
+extern void scaler_init(int scaler_number); /* maybe keeping this and loosing the other stuff */
+
 #ifdef DINGOO_NATIVE
 
 #include <jz4740/cpu.h>  /* for cpu clock */
@@ -577,7 +579,7 @@ char *lpalettes[] = {
 };
 
 const char *lcolorfilter[] = {"Off","On","GBC Only",NULL};
-const char *lupscaler[] = {"Sample1.5x","Scale3x+Sample.75x",NULL};
+const char *lupscaler[] = {"Native (No scale)", "Sample1.5x", "Scale3x+Sample.75x", "Ayla Fullscreen", NULL};
 const char *lframeskip[] = {"Auto","Off","1","2","3","4",NULL};
 #if WIZ
 const char *lclockspeeds[] = {"Default","250 mhz","300 mhz","350 mhz","400 mhz","450 mhz","500 mhz","550 mhz","600 mhz","650 mhz","700 mhz","750 mhz",NULL};
@@ -705,7 +707,7 @@ int menu_options(){
 			sprintf(config[6],"set upscaler %i",upscale);
 			sprintf(config[7],"set frameskip %i",skip-1);
 			sprintf(config[8],"set cpuspeed %i",speed);
-			#ifdef DINGOO_NATIVE /* FIXME Windows too..... */
+			#ifdef DINGOO_NATIVE /* FIXME Windows too..... if (DIRSEP_CHAR == '\\').... */
 			{
 				char tmp_path[PATH_MAX];
 				char *dest, *src;
@@ -751,12 +753,14 @@ int menu_options(){
 	return ret;
 }
 
-int menu(){;
+int menu(){
 
 	char *dir;
 	int mexit=0;
 	static char *loadrom;
+	int old_upscale = 0, new_upscale = 0;
 
+	old_upscale = rc_getint("upscaler");
 	gui_begin();
 	while(!mexit){
 		dialog_begin(rom.name,"ohBoy");
@@ -797,6 +801,9 @@ int menu(){;
 				break;
 		}
 	}
+	new_upscale = rc_getint("upscaler");
+	if (old_upscale != new_upscale)
+		scaler_init(new_upscale);
 	gui_end();
 
 	return 0;

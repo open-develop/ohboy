@@ -36,6 +36,17 @@ endif
 OBJS += $(GNUBOY)/unzip/unzip.o $(GNUBOY)/unzip/ioapi.o
 LIBS += -lz
 
+############
+# Simple disable sound support
+# not as cleanly implemented as in core gnuboy as it
+# still includes unused pcm/sound code... But it works :-)
+#GNUBOY_DISABLE_SDL_SOUND = True
+ifdef GNUBOY_DISABLE_SDL_SOUND
+	OBJS += $(GNUBOY)/sys/dummy/nosound.o
+	DEFS += -DGNUBOY_DISABLE_SDL_SOUND
+endif
+############
+
 # USE_FREETYPE_TTF enables the use of Freetype2library (not SDL_ttf) and uses a ttf file at runtime
 # quality of results on screen is excellent, if not set SFont is used.
 # SFont can have excellent results but the bitmap font supplied at the moment is not pretty.

@@ -284,6 +284,7 @@ int gui_update(){
 }
 
 void gui_end(){
+	/* if not dirty then restore, if dirty force a redraw */
 	memcpy(screen->pixels,fbcopy,fbsz);
 	free(fbcopy);
 	SDL_UnlockSurface(screen);

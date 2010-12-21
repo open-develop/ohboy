@@ -1256,7 +1256,7 @@ char* exe_path_init(const char* inPath) {
 
 int main(int argc, char *argv[]){
 	FILE *config;
-	char *rom;
+	char *rom=NULL;
 	int x, y;
 	pixmap_t *pix;
 	char *cpu;
@@ -1482,9 +1482,15 @@ int main(int argc, char *argv[]){
     }
 #endif /* UBYTE_USE_LIBPNG */
 
-	do{
+	if (argc == 2) /* dirt simple argument processing */
+	{
+		rom = malloc(PATH_MAX);
+		strcpy(rom, argv[1]);
+	}
+	while(!rom)
+	{
 		rom = launcher();
-	}while(!rom);
+	}
 
 	memset(screen->pixels,0,screen->pitch*screen->h);
 

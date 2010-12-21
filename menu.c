@@ -27,6 +27,7 @@
 #include "mem.h"
 #include "sound.h"
 #include "lcd.h"
+#include "menu.h"
 
 
 extern void scaler_init(int scaler_number); /* maybe keeping this and loosing the other stuff */
@@ -43,11 +44,6 @@ char *ctime(const time_t *timep)
 }
 
 #endif /* DINGOO_NATIVE */
-
-/* Probably DINGOO_NATIVE too... */
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif /* PATH_MAX */
 
 
 char *menu_getext(char *s){

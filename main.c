@@ -543,7 +543,6 @@ void gb_upscale(uint32_t *to, uint32_t *from) {
      * Easy isn't it?
      */
 
-    from += 4;
     for (y=0; y < 240/5; y++) {
         for(x=0; x < 320/4; x++) {
             __builtin_prefetch(to+4, 1);

@@ -517,12 +517,8 @@ void ohb_render(){
 **  Known to work in little endian (for instance x86 and Dingoo A320 MIPS)
 **  This is a fast fullscreen 160x144 -> 320x240 (it does not preserve aspect ratio).
 **  Contrary to the pointer types in the function api signature,
-**  it expects framebuffer pixels to be 16bit.
-**  Appears to expect RGB565 for both source and dest.
-**
-**  NOTE there is a bug, the bottom 16x2 pixels in the
-**  320x240 window are "blank". Bottom row is black, row above is gray/grey.
-**  Most visible in PD game adjustris.gb
+**  it expects framebuffer pixels to be 16bit. Under MIPS 32 bit access is faster :-)
+**  NOTE expects RGB565 for both source and dest.
 */
 
 

@@ -175,6 +175,10 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
 	int allocmem = file == NULL;
 	int tmplen = 0;
 	char parent_dir_str[5];
+#ifdef DINGOO_NATIVE
+    static char dingoo_default_path[]="A:\\";
+#endif /* DINGOO_NATIVE */
+
     /* TODO clear all the dyanamic memory allocations in this routine and require caller to pre-allocate */
 
 	if (allocmem) file = malloc(PATH_MAX);
@@ -213,7 +217,21 @@ char* menu_requestfile(char* file, char *title, char* path, char *exts){
             }
             if (strlen(file) == 0)
             {
+#ifdef DINGOO_NATIVE
+                if (dingoo_default_path[0] == 'A')
+                    dingoo_default_path[0] = 'B';
+                else
+                    dingoo_default_path[0] = 'A';
+                sprintf(file, "%s", dingoo_default_path);
+                /*
+                **  If there is no MiniSD card in B:
+                **  then an empty list is displayed
+                **  click the parent directory to
+                **  toggle back to A:
+                */
+#else
                 sprintf(file, ".%s", DIRSEP);
+#endif /* DINGOO_NATIVE */
                 dir = file + strlen(file)+1;
                 *dir = '\0';
             }

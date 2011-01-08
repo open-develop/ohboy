@@ -1,10 +1,12 @@
+# cd /cygdrive/l/dingoo/native/ohboy/
+#
 #         . /mnt/hda6/home/clach04/dingoo_native_sdk_bin/dingoo_sdk_setup.sh 
 # make -B -f Makefile.dingoo
 
 CC = mipsel-linux-gcc
 LD = mipsel-linux-ld
 
-INCLUDE   = -I$(DINGOO_SDK)/include -I$(DINGOO_SDK)/include/SDL -I../lib -I$(MIPSTOOLS)/mipsel-linux/include -I./ 
+INCLUDE   = -I$(DINGOO_SDK)/include -I$(DINGOO_SDK)/include/zlib -I$(DINGOO_SDK)/include/SDL -I../lib -I$(MIPSTOOLS)/mipsel-linux/include -I./ 
 
 W_OPTS    = -Wall -Wextra -finline-functions -fomit-frame-pointer -msoft-float -fno-builtin -fno-exceptions
 CC_OPTS   = -G0 -O3 -mips32 -mno-abicalls -fno-pic $(W_OPTS) -D_DEBUG -DMPU_JZ4740 -c

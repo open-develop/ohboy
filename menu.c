@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>
@@ -465,7 +464,7 @@ int menu_state(int save){
 	return ret;
 }
 
-#define GBPAL_COUNT 13
+#define GBPAL_COUNT 27
 struct pal_s{
 	char name[16];
 	unsigned int dmg_bgp[4];
@@ -479,12 +478,96 @@ struct pal_s{
 		.dmg_wndp = {0X98D0E0,0X68A0B0,0X60707C,0X2C3C3C},
 		.dmg_obp0 = {0X98D0E0,0X68A0B0,0X60707C,0X2C3C3C},
 		.dmg_obp1 = {0X98D0E0,0X68A0B0,0X60707C,0X2C3C3C}
-	},{//Grey Pallete
+	},{//Grey Palette
 		.name = "Grey",
 		.dmg_bgp  = {  0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000 }, //BG
 		.dmg_wndp = {  0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000 }, //WIN
 		.dmg_obp0 = {  0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000 }, //OB0
 		.dmg_obp1 = {  0xFFFFFF, 0xAAAAAA, 0x555555, 0x000000 }  //OB1
+	},{//Realistic Palette
+		.name = "DMG",
+		.dmg_bgp  = {   0x006B5C, 0x265808, 0x343E08, 0x222004 },
+		.dmg_wndp = {   0x006B5C, 0x265808, 0x343E08, 0x222004 },
+		.dmg_obp0 = {   0x006B5C, 0x265808, 0x343E08, 0x222004 },
+		.dmg_obp1 = {   0x006B5C, 0x265808, 0x343E08, 0x222004 }
+	},{//BGB Emulator Palette
+		.name = "BGB",
+		.dmg_bgp  = {   0xD0F8E0, 0x70C088, 0x506830, 0x201808 },
+		.dmg_wndp = {   0xD0F8E0, 0x70C088, 0x506830, 0x201808 },
+		.dmg_obp0 = {   0xD0F8E0, 0x70C088, 0x506830, 0x201808 },
+		.dmg_obp1 = {   0xD0F8E0, 0x70C088, 0x506830, 0x201808 }
+	},{//KiGB Emulator Palette
+		.name = "KiGB",
+		.dmg_bgp  = {   0x50D050, 0x40A040, 0x307030, 0x204020 },
+		.dmg_wndp = {   0x50D050, 0x40A040, 0x307030, 0x204020 },
+		.dmg_obp0 = {   0x50D050, 0x40A040, 0x307030, 0x204020 },
+		.dmg_obp1 = {   0x50D050, 0x40A040, 0x307030, 0x204020 }
+	},{//NO$GMB Emulator Palette
+		.name = "NO$GMB",
+		.dmg_bgp  = {   0x88E0F8, 0x58B0D8, 0x387898, 0x183848 },
+		.dmg_wndp = {   0x88E0F8, 0x58B0D8, 0x387898, 0x183848 },
+		.dmg_obp0 = {   0x88E0F8, 0x58B0D8, 0x387898, 0x183848 },
+		.dmg_obp1 = {   0x88E0F8, 0x58B0D8, 0x387898, 0x183848 }
+	},{//VGB Emulator Palette
+		.name = "VGB",
+		.dmg_bgp  = {   0xADF7FF, 0x73AEB5, 0x315963, 0x000810 },
+		.dmg_wndp = {   0xADF7FF, 0x73AEB5, 0x315963, 0x000810 },
+		.dmg_obp0 = {   0xADF7FF, 0x73AEB5, 0x315963, 0x000810 },
+		.dmg_obp1 = {   0xADF7FF, 0x73AEB5, 0x315963, 0x000810 }
+	},{//Gameboy Pocket Palette B
+		.name = "GBPocket A",
+		.dmg_bgp  = {   0x96B496, 0x6F8265, 0x485134, 0x222004 },
+		.dmg_wndp = {   0x96B496, 0x6F8265, 0x485134, 0x222004 },
+		.dmg_obp0 = {   0x96B496, 0x6F8265, 0x485134, 0x222004 },
+		.dmg_obp1 = {   0x96B496, 0x6F8265, 0x485134, 0x222004 }
+	},{//Gameboy Pocket Palette B
+		.name = "GBPocket B",
+		.dmg_bgp  = {   0x78A591, 0x5B7862, 0x3E4C33, 0x222004 },
+		.dmg_wndp = {   0x78A591, 0x5B7862, 0x3E4C33, 0x222004 },
+		.dmg_obp0 = {   0x78A591, 0x5B7862, 0x3E4C33, 0x222004 },
+		.dmg_obp1 = {   0x78A591, 0x5B7862, 0x3E4C33, 0x222004 }
+	},{//Hot Palette
+		.name = "Hot",
+		.dmg_bgp  = {   0x6496D2, 0x4E6E8D, 0x384748, 0x222004 },
+		.dmg_wndp = {   0x6496D2, 0x4E6E8D, 0x384748, 0x222004 },
+		.dmg_obp0 = {   0x6496D2, 0x4E6E8D, 0x384748, 0x222004 },
+		.dmg_obp1 = {   0x6496D2, 0x4E6E8D, 0x384748, 0x222004 }
+	},{//Warm Palette
+		.name = "Warm",
+		.dmg_bgp  = {   0x64D2BE, 0x4E9680, 0x385B42, 0x222004 },
+		.dmg_wndp = {   0x64D2BE, 0x4E9680, 0x385B42, 0x222004 },
+		.dmg_obp0 = {   0x64D2BE, 0x4E9680, 0x385B42, 0x222004 },
+		.dmg_obp1 = {   0x64D2BE, 0x4E9680, 0x385B42, 0x222004 }
+	},{//Fresh Palette
+		.name = "Fresh",
+		.dmg_bgp  = {   0xBED264, 0x8A9644, 0x565B24, 0x222004 },
+		.dmg_wndp = {   0xBED264, 0x8A9644, 0x565B24, 0x222004 },
+		.dmg_obp0 = {   0xBED264, 0x8A9644, 0x565B24, 0x222004 },
+		.dmg_obp1 = {   0xBED264, 0x8A9644, 0x565B24, 0x222004 }
+	},{//Cold Palette
+		.name = "Cold",
+		.dmg_bgp  = {   0xD29664, 0x976E44, 0x5C4724, 0x222004 },
+		.dmg_wndp = {   0xD29664, 0x976E44, 0x5C4724, 0x222004 },
+		.dmg_obp0 = {   0xD29664, 0x976E44, 0x5C4724, 0x222004 },
+		.dmg_obp1 = {   0xD29664, 0x976E44, 0x5C4724, 0x222004 }
+	},{//Tinted Palette A
+		.name = "Tinted A",
+		.dmg_bgp  = {   0xA1CFC4, 0x6D958B, 0x3C534D, 0x1F1F1F },
+		.dmg_wndp = {   0xA1CFC4, 0x6D958B, 0x3C534D, 0x1F1F1F },
+		.dmg_obp0 = {   0xA1CFC4, 0x6D958B, 0x3C534D, 0x1F1F1F },
+		.dmg_obp1 = {   0xA1CFC4, 0x6D958B, 0x3C534D, 0x1F1F1F }
+	},{//Tinted Palette B
+		.name = "Tinted B",
+		.dmg_bgp  = {   0xDCFFE6, 0x96B9A0, 0x55735A, 0x0F280F },
+		.dmg_wndp = {   0xDCFFE6, 0x96B9A0, 0x55735A, 0x0F280F },
+		.dmg_obp0 = {   0xDCFFE6, 0x96B9A0, 0x55735A, 0x0F280F },
+		.dmg_obp1 = {   0xDCFFE6, 0x96B9A0, 0x55735A, 0x0F280F }
+	},{//Tinted Palette C
+		.name = "Tinted C",
+		.dmg_bgp  = {   0x009284, 0x00786E, 0x00554B, 0x002D28 },
+		.dmg_wndp = {   0x009284, 0x00786E, 0x00554B, 0x002D28 },
+		.dmg_obp0 = {   0x009284, 0x00786E, 0x00554B, 0x002D28 },
+		.dmg_obp1 = {   0x009284, 0x00786E, 0x00554B, 0x002D28 }
 	},{//Left
 		.name = "Blue",
 		.dmg_bgp  = {   0xFFFFFF, 0xF8A878, 0xF8A878, 0x000000 },
@@ -589,6 +672,20 @@ char *lpalettes[] = {
 	gbpal[10].name,
 	gbpal[11].name,
 	gbpal[12].name,
+	gbpal[13].name,
+	gbpal[14].name,
+	gbpal[15].name,
+	gbpal[16].name,
+	gbpal[17].name,
+	gbpal[18].name,
+	gbpal[19].name,
+	gbpal[20].name,
+	gbpal[21].name,
+	gbpal[22].name,
+	gbpal[23].name,
+	gbpal[24].name,
+	gbpal[25].name,
+	gbpal[26].name,
 	NULL
 };
 

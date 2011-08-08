@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <signal.h>
@@ -19,8 +18,11 @@
 #endif /* OHBOY_USE_SDL_IMAGE */
 
 #include "SFont.h"
-#include "font8px.h"
+#include "font8px.h"  /* built in FPS font */
+/*
 #include "font14px.h"
+*/
+#include "font_pressstart8x.h"
 
 #include "gnuboy.h"
 #include "fb.h"
@@ -53,8 +55,10 @@ SFont_Font* menu_font=NULL;
 SDL_Rect myrect;
 /* fps */
 
-#define FONT_NAME "FreeUniversal-Regular.ttf"
-#define FONT_SIZE 14
+#define FONT_NAME "pressstart.ttf"
+#define FONT_SIZE 8
+#define SFONT_NAME "pressstart_font"
+
 static font_t *font;
 
 struct fb fb;
@@ -1281,20 +1285,24 @@ int main(int argc, char *argv[]){
     menu_font_bitmap_surface = SDL_LoadBMP("14P_Arial_Plain_Red.bmp"); // too big
     menu_font_bitmap_surface = SDL_LoadBMP("smallstone.bmp"); // good size, not very clear (colours?)
     */
+
 #ifdef OHBOY_USE_SDL_IMAGE
     if (!menu_font_bitmap_surface)
     {
-        menu_font_bitmap_surface = IMG_Load("etc"DIRSEP"ohboy_font14.png");
+        menu_font_bitmap_surface = IMG_Load("etc" DIRSEP SFONT_NAME ".png");
     }
 #endif /* OHBOY_USE_SDL_IMAGE */
     if (!menu_font_bitmap_surface)
     {
-        menu_font_bitmap_surface = SDL_LoadBMP("etc"DIRSEP"ohboy_font14.bmp");
+        menu_font_bitmap_surface = SDL_LoadBMP("etc" DIRSEP SFONT_NAME ".bmp");
     }
     if (!menu_font_bitmap_surface)
     {
         /* use internal font */
+        /*
         menu_font_bitmap_surface = get_font14px_font();
+        */
+        menu_font_bitmap_surface = get_pressstart_font();
         /*
         SDL_SaveBMP(menu_font_bitmap_surface, "menu_font_bitmap_surface.bmp");
         */

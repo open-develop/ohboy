@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,14 +13,28 @@ static int dfg;
 static int dpad;
 static pixmap_t *dscrollu, *dscrolld, *doptl, *doptr;
 
-#define TEXT_LINE_OFFSET 4
-
-
+    /* These below allow to adjust the vertical position of all elements of the menu, when using Freetype or SFont. Positive values move elements down.*/
 #ifdef UBYTE_USE_FREETYPE
 #define HIGHLIGHT_RECT_OFFSET 0
+#define TEXT_OFFSET 0
+#define LRARROW_OFFSET 1
+#define UPARROW_OFFSET 4
+#define DOWNARROW_OFFSET -1
+#define TITLE_OFFSET 2
+#define TITLE_LINE_OFFSET 8
+#define STATUS_OFFSET -2
+#define STATUS_LINE_OFFSET -5
 #else
     /* using SFont */
 #define HIGHLIGHT_RECT_OFFSET 4
+#define TEXT_OFFSET 0
+#define LRARROW_OFFSET 3
+#define UPARROW_OFFSET 4
+#define DOWNARROW_OFFSET 1
+#define TITLE_OFFSET 0
+#define TITLE_LINE_OFFSET 8
+#define STATUS_OFFSET -5
+#define STATUS_LINE_OFFSET -5
 #endif /* UBYTE_USE_FREETYPE */
 
 int dialog_maxtextw(){
@@ -173,10 +186,10 @@ static int dialog_drawtitle(){
 	int pad = dpad;
 	gui_setclip(0,0,gui.w,dialog->title_h);
 	gui_cls();
-	gui_drawtext(dfont,dialog->title,dialog->title_x,dfont->height,color,0);
-	gui_drawrect(0,dfont->height+TEXT_LINE_OFFSET,gui.w,1,color,0);
+	gui_drawtext(dfont,dialog->title,dialog->title_x,dfont->height+TITLE_OFFSET,color,0);
+	gui_drawrect(0,dfont->height+TITLE_LINE_OFFSET,gui.w,1,color,0);
 	if(dialog->pos > 0){
-		gui_drawpixmap(dscrollu, pad/4, dfont->height-dscrollu->height, color, 0);
+		gui_drawpixmap(dscrollu, pad/4, dfont->height-dscrollu->height+UPARROW_OFFSET, color, 0);
 	}
 }
 
@@ -204,19 +217,19 @@ static int dialog_drawfield(int i){
 		if(dialog->prompt_w < w) w = dialog->prompt_w;
 		gui_drawrect(dialog->prompt_x+hpad, y+HIGHLIGHT_RECT_OFFSET, w-pad, dialog->field_h, color, 1);
 		if(field->type == FIELD_OPTION){
-			gui_drawpixmap(doptl,dialog->body_x,y+dfont->ascent-doptl->height,color,0);
+			gui_drawpixmap(doptl,dialog->body_x,y+dfont->ascent-doptl->height+LRARROW_OFFSET,color,0);
 			w = font_textwidth(dfont,field->body);
 			if(field->body_w < w) w = field->body_w;
-			gui_drawpixmap(doptr,dialog->body_x+w+pad2-doptr->width,y+dfont->ascent-doptr->height,color,0);
+			gui_drawpixmap(doptr,dialog->body_x+w+pad2-doptr->width,y+dfont->ascent-doptr->height+LRARROW_OFFSET,color,0);
 		}
 		invert = 1;
 	}
 
 	gui_setclip(dialog->prompt_x+pad, y, dialog->prompt_w-pad2, dialog->field_h);
-	gui_drawtext(dfont,field->prompt,dialog->prompt_x+pad,y+dfont->ascent,color,invert);
+	gui_drawtext(dfont,field->prompt,dialog->prompt_x+pad,y+dfont->ascent+TEXT_OFFSET,color,invert);
 	gui_setclip(dialog->body_x+pad, y, dialog->body_w-pad2, dialog->field_h);
 	if (field->body)
-		gui_drawtext(dfont,field->body,dialog->body_x+pad,y+dfont->ascent,color,0);
+		gui_drawtext(dfont,field->body,dialog->body_x+pad,y+dfont->ascent+TEXT_OFFSET,color,0);
 }
 
 static int dialog_drawstatus(){
@@ -227,11 +240,11 @@ static int dialog_drawstatus(){
 	gui_setclip(0,gui.h-dialog->status_h,gui.w,dialog->status_h);
 	gui_cls();
 
-	gui_drawtext(dfont,dialog->status,dialog->status_x,gui.h+dfont->descent,color,0);
-	gui_drawrect(0,gui.h-dfont->height-TEXT_LINE_OFFSET,gui.w,1,color,0);
+	gui_drawtext(dfont,dialog->status,dialog->status_x,gui.h+dfont->descent+STATUS_OFFSET,color,0);
+	gui_drawrect(0,gui.h-dfont->height+STATUS_LINE_OFFSET,gui.w,1,color,0);
 
 	if(dialog->pos < dialog->field_count-dialog->visible_count){
-		gui_drawpixmap(dscrolld,pad/4,gui.h+dfont->descent-dscrolld->height,color,0);
+		gui_drawpixmap(dscrolld,pad/4,gui.h+dfont->descent-dscrolld->height+DOWNARROW_OFFSET,color,0);
 	}
 }
 

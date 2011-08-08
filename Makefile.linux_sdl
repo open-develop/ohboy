@@ -1,3 +1,4 @@
+# make -B -f Makefile.linux_sdl
 
 CC = gcc
 LD = $(CC)

@@ -376,13 +376,18 @@ char *menu_requestdir(const char *title, const char *path){
 	return dir;
 }
 
-static const char *slots[] = {"Slot 0","Slot 1","Slot 2","Slot 3","Slot 4","Slot 5","Slot 6","Slot 7",NULL};
+/* NOTE number of slot entries is indirectly related to font size */
+/* only display one screen of save slots */
+static const char *slots[] = {
+    "Slot 0","Slot 1","Slot 2","Slot 3","Slot 4","Slot 5","Slot 6","Slot 7",
+    "Slot 8","Slot 9","Slot 10","Slot 11","Slot 12","Slot 13","Slot 14","Slot 15",
+    NULL};
 static const char *emptyslot = "<Empty>";
 static const char *not_emptyslot = "<Used>";
 
 int menu_state(int save){
 
-	char *statebody[8];
+	char **statebody=NULL;
 	char* name;
 
 	int i, flags,ret, del=0,l;
@@ -397,6 +402,10 @@ int menu_state(int save){
 	char *savename;
 	char *saveprefix;
 	FILE *f;
+	int sizeof_slots=0;
+    while (slots[sizeof_slots] != NULL)
+        sizeof_slots++;
+    statebody = malloc(sizeof_slots * sizeof(char*));  /* FIXME check for NULL return from malloc */
 
 	savedir = rc_getstr("savedir");
 	savename = rc_getstr("savename");
@@ -405,7 +414,7 @@ int menu_state(int save){
 
 	dialog_begin(save?"Save State":"Load State",rom.name);
 
-	for(i=0; i<8; i++){
+	for(i=0; i<sizeof_slots; i++){
 
 		name = malloc(strlen(saveprefix) + 5);
 		sprintf(name, "%s.%03d", saveprefix, i);
@@ -457,7 +466,7 @@ int menu_state(int save){
 		free(name);
 	}
 
-	for(i=0; i<8; i++)
+	for(i=0; i<sizeof_slots; i++)
 		if(statebody[i] != emptyslot && statebody[i] != not_emptyslot) free(statebody[i]);
 
 	free(saveprefix);
@@ -926,7 +935,7 @@ int launcher(){;
 
 	char *rom = 0;
 	char *dir = rc_getstr("romdir");
-	char *version_str[80];
+	char version_str[80];
     
     snprintf(version_str, sizeof(version_str)-1, "gnuboy %s", VERSION);
 

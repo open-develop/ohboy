@@ -1382,6 +1382,8 @@ int main(int argc, char *argv[]){
 	rc_command("bind joyright +right");
 	rc_command("bind joy0 +b");
 	rc_command("bind joy3 +a");
+	rc_command("bind joy1 +b");
+	rc_command("bind joy2 +a");
 	rc_command("bind joy8 +start");
 	rc_command("bind joy9 +select");
 #endif

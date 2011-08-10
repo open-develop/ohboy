@@ -1502,6 +1502,7 @@ int main(int argc, char *argv[]){
 	catch_signals();
 	vid_init();
 	pcm_init();
+	scaler_init(0);
 	ohb_loadrom(rom);
 	emu_run();
 	return 0;

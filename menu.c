@@ -701,6 +701,7 @@ char *lpalettes[] = {
 const char *lcolorfilter[] = {"Off","On","GBC Only",NULL};
 const char *lupscaler[] = {"Native (No scale)", "Sample1.5x", "Scale3x+Sample.75x", "Ayla Fullscreen", NULL};
 const char *lframeskip[] = {"Auto","Off","1","2","3","4",NULL};
+const char *lsdl_showfps[] = {"Off","On","Boxed",NULL};
 #if WIZ
 const char *lclockspeeds[] = {"Default","250 mhz","300 mhz","350 mhz","400 mhz","450 mhz","500 mhz","550 mhz","600 mhz","650 mhz","700 mhz","750 mhz",NULL};
 #endif
@@ -716,7 +717,7 @@ static char config[16][256];
 int menu_options(){
 
 	struct pal_s *palp=0;
-	int pal=0, skip=0, ret=0, cfilter=0, upscale=0, speed=0, i=0;
+	int pal=0, skip=0, ret=0, cfilter=0, sfps=0, upscale=0, speed=0, i=0;
 	char *tmp=0, *romdir=0;
 
 	FILE *file;
@@ -744,6 +745,7 @@ int menu_options(){
 	if(cfilter && !rc_getint("filterdmg")) cfilter = 2;
 	upscale = rc_getint("upscaler");
 	skip = rc_getint("frameskip")+1;
+	sfps = rc_getint("showfps");
 #ifdef DINGOO_NATIVE
 	speed = 0;
 #else
@@ -759,35 +761,36 @@ int menu_options(){
 
 	dialog_begin("Options",NULL);
 
-	dialog_option("Mono Palette",lpalettes,&pal);
-	dialog_option("Color Filter",lcolorfilter,&cfilter);
-	dialog_option("Upscaler",lupscaler,&upscale);
-	dialog_option("Frameskip",lframeskip,&skip);
+	dialog_option("Mono Palette",lpalettes,&pal);               /* 1 */
+	dialog_option("Color Filter",lcolorfilter,&cfilter);        /* 2 */
+	dialog_option("Upscaler",lupscaler,&upscale);               /* 3 */
+	dialog_option("Frameskip",lframeskip,&skip);                /* 4 */
+	dialog_option("Show FPS",lsdl_showfps,&sfps);               /* 5 */
 #if defined(WIZ) || defined(DINGOO_NATIVE)
-	dialog_option("Clock Speed",lclockspeeds,&speed);
+	dialog_option("Clock Speed",lclockspeeds,&speed);           /* 6 */
 #else
-	dialog_text("Clock Speed","Default",0);
+	dialog_text("Clock Speed","Default",0);                     /* 6 */
 #endif
-	dialog_text("Rom Path",romdir,FIELD_SELECTABLE);
+	dialog_text("Rom Path",romdir,FIELD_SELECTABLE);            /* 7 */
 	#ifdef GNUBOY_HARDWARE_VOLUME
-	dialog_option("Volume", volume_levels, &volume_hardware); /* this is not the OSD volume.. */
+	dialog_option("Volume", volume_levels, &volume_hardware);   /* 8 */ /* this is not the OSD volume.. */
 	#else
-	dialog_text("Volume", "Default - use soft volume", 0); /* this is not the OSD volume.. */
+	dialog_text("Volume", "Default - use soft volume", 0);      /* 8 */ /* this is not the OSD volume.. */
 	#endif /* GNBOY_HARDWARE_VOLUME */
-	dialog_text(NULL,NULL,0);
-	dialog_text("Apply",NULL,FIELD_SELECTABLE);
-	dialog_text("Save",NULL,FIELD_SELECTABLE);
+	dialog_text(NULL,NULL,0);                                   /* 9 */
+	dialog_text("Apply",NULL,FIELD_SELECTABLE);                 /* 10 */
+	dialog_text("Apply & Save",NULL,FIELD_SELECTABLE);          /* 11 */
 
 	switch(ret=dialog_end()){
-		case 6: /* "Rom Path" romdir */
+		case 7: /* "Rom Path" romdir */
 			tmp = menu_requestdir("Select Rom Directory",romdir);
 			if(tmp){
 				free(romdir);
 				romdir = tmp;
 			}
 			goto start;
-		case 9: /* Apply */
-		case 10: /* Save */
+		case 10: /* Apply */
+		case 11: /* Apply & Save */
 			#ifdef GNUBOY_HARDWARE_VOLUME
 			pcm_volume(volume_hardware * 10);
 			#endif /* GNBOY_HARDWARE_VOLUME */
@@ -826,7 +829,8 @@ int menu_options(){
 			sprintf(config[5],"set filterdmg %i",cfilter==1);
 			sprintf(config[6],"set upscaler %i",upscale);
 			sprintf(config[7],"set frameskip %i",skip-1);
-			sprintf(config[8],"set cpuspeed %i",speed);
+			sprintf(config[8],"set showfps %i",sfps);
+			sprintf(config[9],"set cpuspeed %i",speed);
 			#ifdef DINGOO_NATIVE /* FIXME Windows too..... if (DIRSEP_CHAR == '\\').... */
 			{
 				char tmp_path[PATH_MAX];
@@ -845,20 +849,22 @@ int menu_options(){
 					dest++;
 				}
 			
-				sprintf(config[9], "set romdir \"%s\"", tmp_path);
+				sprintf(config[10], "set romdir \"%s\"", tmp_path);
+				scaler_init(0);
 			}
 			#else
-			sprintf(config[9],"set romdir \"%s\"",romdir);
+			sprintf(config[10],"set romdir \"%s\"",romdir);
+			scaler_init(0);
 			#endif /* DINGOO_NATIVE */
 
-			for(i=0; i<10; i++)
+			for(i=0; i<11; i++)
 				rc_command(config[i]);
 
 			pal_dirty();
 
-			if (ret == 10){ /* Save */
+			if (ret == 11){ /* Apply & Save */
 				file = fopen("ohboy.rc","w");
-				for(i=0; i<10; i++){
+				for(i=0; i<11; i++){
 					fputs(config[i],file);
 					fputs("\n",file);
 				}

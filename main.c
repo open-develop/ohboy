@@ -38,8 +38,7 @@
 void ohb_loadrom(char *rom);
 
 /* fps */
-/* TODO make sdl_showfps an RC variable AND add a menu entry */
-static int sdl_showfps = 2;  /* 0 = OFF, 1 = Text only (white text over transparent) , 2 = Text in a box (white text on black background) */
+/*static int sdl_showfps 0 = OFF, 1 = Text Only, 2 = Text in a box (white text on black background) */
 static int fps_current_count = 0; 
 static int fps_last_count = 0; 
 static int fps_last_time = 0; 
@@ -62,7 +61,7 @@ SDL_Rect myrect;
 static font_t *font;
 
 struct fb fb;
-static int upscaler=0, frameskip=0, cpu_speed=0;
+static int upscaler=0, frameskip=0, sdl_showfps=0, cpu_speed=0;
 static char* romdir=0;
 static int osd_persist=0;
 static int dvolume=0;
@@ -71,6 +70,7 @@ rcvar_t vid_exports[] =
 {
 	RCV_INT("upscaler", &upscaler),
 	RCV_INT("frameskip", &frameskip),
+	RCV_INT("showfps", &sdl_showfps),
 	RCV_INT("cpuspeed",&cpu_speed),
 	RCV_STRING("romdir",&romdir),
 	RCV_END
@@ -788,10 +788,14 @@ void vid_end() {
             fps_current_time = SDL_GetTicks();
             fps_current_count++;
             snprintf(fps_str, 19, "%d FPS", fps_last_count);
-            if (sdl_showfps > 1 )
+            if (sdl_showfps > 1)
             {
                 myrect.w = SFont_TextWidth(fps_font, fps_str);
                 SDL_FillRect(screen, &myrect, 0 );
+            }
+            if (sdl_showfps == 1)
+            {
+                scaler_init(0);        /*This is a workaround to refresh the printed text, to erase the previous numbers before the new text is printed. There may be a better option, though...*/
             }
             SFont_Write(screen, fps_font, 0,0, fps_str);
             if ( fps_current_time - fps_last_time >= 1000 )

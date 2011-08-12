@@ -1,6 +1,6 @@
 SDK_PATH = C:/CAANOO/GPH_SDK
 
-CC = $(SDK_PATH)/tools/gcc-4.2.4-glibc-2.7-eabi/bin/arm-gph-linux-gnueabi-gcc
+CC = $(SDK_PATH)/tools/cross-eabi/bin/arm-gph-linux-gnueabi-gcc
 LD = $(CC)
 
 CFLAGS = -O3 -mcpu=arm926ej-s -mtune=arm926ej-s -I$(SDK_PATH)/include -I$(SDK_PATH)/DGE/include -I$(SDK_PATH)/include/freetype2/freetype -I$(SDK_PATH)/include/freetype2 -I$(SDK_PATH)/DGE/include/SDL
@@ -20,7 +20,7 @@ OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o 
 	./ubytegui/dialog.o ./ubytegui/font.o ./ubytegui/gui.o ./ubytegui/pixmap.o \
 	sdl_gp2xpatch.o
 
-DEFS = -DIS_LITTLE_ENDIAN -DGP2X -DCAANOO -D__NO_STRING_INLINES
+DEFS = -DIS_LITTLE_ENDIAN -DGP2X -DCAANOO -D__NO_STRING_INLINES -DGNUBOY_NO_SCREENSHOT
 INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl
 LIBS = -lSDL -lz
 
@@ -62,7 +62,7 @@ endif
 
 MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
 
-all: ohboy
+target: ohboy
 
 ohboy: OhBoy.gpe
 

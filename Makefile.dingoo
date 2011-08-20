@@ -94,7 +94,11 @@ MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
 
 APP_NAME = ohboy_dingoo
 
-all : $(APP_NAME).app $(BUILD_DINGOO_SIM)
+all : ohboy_ver.h $(APP_NAME).app $(BUILD_DINGOO_SIM)
+
+# FIXME need better dependency handling
+ohboy_ver.h:
+	sh gen_ohboyver.sh > ohboy_ver.h
 
 $(APP_NAME).app : $(APP_NAME).elf
 	$(DINGOO_SDK)/tools/elf2app/elf2app $(APP_NAME)

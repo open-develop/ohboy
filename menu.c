@@ -1172,6 +1172,12 @@ int menu(){
 		dialog_text("Controls",NULL,FIELD_SELECTABLE);
 		dialog_text("About",NULL,FIELD_SELECTABLE);
 		dialog_text("Quit","",FIELD_SELECTABLE);
+		
+#ifdef DINGOO_NATIVE
+		dialog_text(NULL, NULL, 0); /* blank line */
+		dialog_text("Menu:", NULL, 0);
+		dialog_text(" Slide Power", NULL, 0);
+#endif /* DINGOO_NATIVE */
 
 		switch(dialog_end()){
 			case 2:
@@ -1236,6 +1242,12 @@ launcher:
 	dialog_text("Controls",NULL,FIELD_SELECTABLE);
 	dialog_text("About",NULL,FIELD_SELECTABLE);
 	dialog_text("Quit","",FIELD_SELECTABLE);
+
+#ifdef DINGOO_NATIVE
+	dialog_text(NULL, NULL, 0); /* blank line */
+	dialog_text("Menu:", NULL, 0);
+	dialog_text(" Slide Power", NULL, 0);
+#endif /* DINGOO_NATIVE */
 
 	switch(dialog_end()){
 		case 1:

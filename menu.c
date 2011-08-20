@@ -13,6 +13,7 @@
 #include <time.h>
 
 #include "gnuboy/Version"
+#include "ohboy_ver.h"
 
 #include "gnuboy.h"
 
@@ -698,10 +699,16 @@ char *lpalettes[] = {
 	NULL
 };
 
+const char *lbutton_a[] = {"None","Button A","Button B","Select","Start","Reset","Quit",NULL};
+const char *lbutton_b[] = {"None","Button A","Button B","Select","Start","Reset","Quit",NULL};
+const char *lbutton_x[] = {"None","Button A","Button B","Select","Start","Reset","Quit",NULL};
+const char *lbutton_y[] = {"None","Button A","Button B","Select","Start","Reset","Quit",NULL};
+const char *lbutton_l[] = {"None","Button A","Button B","Select","Start","Reset","Quit",NULL};
+const char *lbutton_r[] = {"None","Button A","Button B","Select","Start","Reset","Quit",NULL};
 const char *lcolorfilter[] = {"Off","On","GBC Only",NULL};
 const char *lupscaler[] = {"Native (No scale)", "Sample1.5x", "Scale3x+Sample.75x", "Ayla Fullscreen", NULL};
 const char *lframeskip[] = {"Auto","Off","1","2","3","4",NULL};
-const char *lsdl_showfps[] = {"Off","On","Boxed",NULL};
+const char *lsdl_showfps[] = {"Off","Text Only","Boxed Text",NULL};
 #if WIZ
 const char *lclockspeeds[] = {"Default","250 mhz","300 mhz","350 mhz","400 mhz","450 mhz","500 mhz","550 mhz","600 mhz","650 mhz","700 mhz","750 mhz",NULL};
 #endif
@@ -775,11 +782,12 @@ int menu_options(){
 	#ifdef GNUBOY_HARDWARE_VOLUME
 	dialog_option("Volume", volume_levels, &volume_hardware);   /* 8 */ /* this is not the OSD volume.. */
 	#else
-	dialog_text("Volume", "Default - use soft volume", 0);      /* 8 */ /* this is not the OSD volume.. */
+	dialog_text("Volume", "Default", 0);                        /* 8 */ /* this is not the OSD volume.. */
 	#endif /* GNBOY_HARDWARE_VOLUME */
 	dialog_text(NULL,NULL,0);                                   /* 9 */
 	dialog_text("Apply",NULL,FIELD_SELECTABLE);                 /* 10 */
 	dialog_text("Apply & Save",NULL,FIELD_SELECTABLE);          /* 11 */
+	dialog_text("Cancel",NULL,FIELD_SELECTABLE);                /* 12 */
 
 	switch(ret=dialog_end()){
 		case 7: /* "Rom Path" romdir */
@@ -789,6 +797,9 @@ int menu_options(){
 				romdir = tmp;
 			}
 			goto start;
+		case 12: /* Cancel */
+			return ret;
+			break;
 		case 10: /* Apply */
 		case 11: /* Apply & Save */
 			#ifdef GNUBOY_HARDWARE_VOLUME
@@ -879,6 +890,266 @@ int menu_options(){
 	return ret;
 }
 
+int menu_controls(){
+
+	int ret=0, i=0, btna=2, btnb=1, btnx=2, btny=1, btnl=3, btnr=4;
+
+	FILE *file;
+
+	btna = rc_getint("button_a");
+	btnb = rc_getint("button_b");
+	btnx = rc_getint("button_x");
+	btny = rc_getint("button_y");
+	btnl = rc_getint("button_l");
+	btnr = rc_getint("button_r");
+
+	start:
+
+	dialog_begin("Controls",NULL);
+
+	#if defined(CAANOO)
+	dialog_text("Caanoo","Gameboy",0);                       /* 1 */
+	#endif
+	#if defined(WIZ)
+	dialog_text("Wiz","Gameboy",0);                          /* 1 */
+	#endif
+	#if defined(DINGOO_NATIVE)
+	dialog_text("Dingoo","Gameboy",0);                       /* 1 */
+	#endif
+	#if defined(GP2X_ONLY)
+	dialog_text("GP2X","Gameboy",0);                         /* 1 */
+	#endif
+	dialog_text(NULL,NULL,0);                                /* 2 */
+	dialog_option("Button A",lbutton_a,&btna);               /* 3 */
+	dialog_option("Button B",lbutton_b,&btnb);               /* 4 */
+	dialog_option("Button X",lbutton_x,&btnx);               /* 5 */
+	dialog_option("Button Y",lbutton_y,&btny);               /* 6 */
+	dialog_option("Button L",lbutton_l,&btnl);               /* 7 */
+	dialog_option("Button R",lbutton_r,&btnr);               /* 8 */
+	dialog_text(NULL,NULL,0);                                /* 9 */
+	dialog_text("Apply",NULL,FIELD_SELECTABLE);              /* 10 */
+	dialog_text("Apply & Save",NULL,FIELD_SELECTABLE);       /* 11 */
+	dialog_text("Cancel",NULL,FIELD_SELECTABLE);             /* 12 */
+
+	switch(ret=dialog_end()){
+		case 12: /* Cancel */
+			return ret;
+			break;
+		case 10: /* Apply */
+		case 11: /* Apply & Save */
+		    sprintf(config[0],"#KEY BINDINGS#");
+			sprintf(config[1],"set button_a %i",btna);
+			sprintf(config[2],"set button_b %i",btnb);
+			sprintf(config[3],"set button_x %i",btnx);
+			sprintf(config[4],"set button_y %i",btny);
+			sprintf(config[5],"set button_l %i",btnl);
+			sprintf(config[6],"set button_r %i",btnr);
+			#if defined(CAANOO)
+			    if (btna == 0) {sprintf(config[7],"unbind joy0");}
+			    if (btnb == 0) {sprintf(config[8],"unbind joy2");}
+			    if (btnx == 0) {sprintf(config[9],"unbind joy1");}
+			    if (btny == 0) {sprintf(config[10],"unbind joy3");}
+			    if (btnl == 0) {sprintf(config[11],"unbind joy4");}
+			    if (btnr == 0) {sprintf(config[12],"unbind joy5");}
+
+			    if (btna == 1) {sprintf(config[7],"bind joy0 +a");}
+			    if (btnb == 1) {sprintf(config[8],"bind joy2 +a");}
+			    if (btnx == 1) {sprintf(config[9],"bind joy1 +a");}
+			    if (btny == 1) {sprintf(config[10],"bind joy3 +a");}
+			    if (btnl == 1) {sprintf(config[11],"bind joy4 +a");}
+			    if (btnr == 1) {sprintf(config[12],"bind joy5 +a");}
+
+			    if (btna == 2) {sprintf(config[7],"bind joy0 +b");}
+			    if (btnb == 2) {sprintf(config[8],"bind joy2 +b");}
+			    if (btnx == 2) {sprintf(config[9],"bind joy1 +b");}
+			    if (btny == 2) {sprintf(config[10],"bind joy3 +b");}
+			    if (btnl == 2) {sprintf(config[11],"bind joy4 +b");}
+			    if (btnr == 2) {sprintf(config[12],"bind joy5 +b");}
+
+			    if (btna == 3) {sprintf(config[7],"bind joy0 +select");}
+			    if (btnb == 3) {sprintf(config[8],"bind joy2 +select");}
+			    if (btnx == 3) {sprintf(config[9],"bind joy1 +select");}
+			    if (btny == 3) {sprintf(config[10],"bind joy3 +select");}
+			    if (btnl == 3) {sprintf(config[11],"bind joy4 +select");}
+			    if (btnr == 3) {sprintf(config[12],"bind joy5 +select");}
+
+			    if (btna == 4) {sprintf(config[7],"bind joy0 +start");}
+			    if (btnb == 4) {sprintf(config[8],"bind joy2 +start");}
+			    if (btnx == 4) {sprintf(config[9],"bind joy1 +start");}
+			    if (btny == 4) {sprintf(config[10],"bind joy3 +start");}
+			    if (btnl == 4) {sprintf(config[11],"bind joy4 +start");}
+			    if (btnr == 4) {sprintf(config[12],"bind joy5 +start");}
+
+			    if (btna == 5) {sprintf(config[7],"bind joy0 reset");}
+			    if (btnb == 5) {sprintf(config[8],"bind joy2 reset");}
+			    if (btnx == 5) {sprintf(config[9],"bind joy1 reset");}
+			    if (btny == 5) {sprintf(config[10],"bind joy3 reset");}
+			    if (btnl == 5) {sprintf(config[11],"bind joy4 reset");}
+			    if (btnr == 5) {sprintf(config[12],"bind joy5 reset");}
+
+			    if (btna == 6) {sprintf(config[7],"bind joy0 quit");}
+			    if (btnb == 6) {sprintf(config[8],"bind joy2 quit");}
+			    if (btnx == 6) {sprintf(config[9],"bind joy1 quit");}
+			    if (btny == 6) {sprintf(config[10],"bind joy3 quit");}
+			    if (btnl == 6) {sprintf(config[11],"bind joy4 quit");}
+			    if (btnr == 6) {sprintf(config[12],"bind joy5 quit");}
+			#endif
+			#if defined(DINGOO_NATIVE)
+			    if (btna == 0) {sprintf(config[7],"unbind ctrl");}
+			    if (btnb == 0) {sprintf(config[8],"unbind alt");}
+			    if (btnx == 0) {sprintf(config[9],"unbind space");}
+			    if (btny == 0) {sprintf(config[10],"unbind shift");}
+			    if (btnl == 0) {sprintf(config[11],"unbind tab");}
+			    if (btnr == 0) {sprintf(config[12],"unbind backspace");}
+
+			    if (btna == 1) {sprintf(config[7],"bind ctrl +a");}
+			    if (btnb == 1) {sprintf(config[8],"bind alt +a");}
+			    if (btnx == 1) {sprintf(config[9],"bind space +a");}
+			    if (btny == 1) {sprintf(config[10],"bind shift +a");}
+			    if (btnl == 1) {sprintf(config[11],"bind tab +a");}
+			    if (btnr == 1) {sprintf(config[12],"bind backspace +a");}
+
+			    if (btna == 2) {sprintf(config[7],"bind ctrl +b");}
+			    if (btnb == 2) {sprintf(config[8],"bind alt +b");}
+			    if (btnx == 2) {sprintf(config[9],"bind space +b");}
+			    if (btny == 2) {sprintf(config[10],"bind shift +b");}
+			    if (btnl == 2) {sprintf(config[11],"bind tab +b");}
+			    if (btnr == 2) {sprintf(config[12],"bind backspace +b");}
+
+			    if (btna == 3) {sprintf(config[7],"bind ctrl +select");}
+			    if (btnb == 3) {sprintf(config[8],"bind alt +select");}
+			    if (btnx == 3) {sprintf(config[9],"bind space +select");}
+			    if (btny == 3) {sprintf(config[10],"bind shift +select");}
+			    if (btnl == 3) {sprintf(config[11],"bind tab +select");}
+			    if (btnr == 3) {sprintf(config[12],"bind backspace +select");}
+
+			    if (btna == 4) {sprintf(config[7],"bind ctrl +start");}
+			    if (btnb == 4) {sprintf(config[8],"bind alt +start");}
+			    if (btnx == 4) {sprintf(config[9],"bind space +start");}
+			    if (btny == 4) {sprintf(config[10],"bind shift +start");}
+			    if (btnl == 4) {sprintf(config[11],"bind tab +start");}
+			    if (btnr == 4) {sprintf(config[12],"bind backspace +start");}
+
+			    if (btna == 5) {sprintf(config[7],"bind ctrl reset");}
+			    if (btnb == 5) {sprintf(config[8],"bind alt reset");}
+			    if (btnx == 5) {sprintf(config[9],"bind space reset");}
+			    if (btny == 5) {sprintf(config[10],"bind shift reset");}
+			    if (btnl == 5) {sprintf(config[11],"bind tab reset");}
+			    if (btnr == 5) {sprintf(config[12],"bind backspace reset");}
+
+			    if (btna == 6) {sprintf(config[7],"bind ctrl quit");}
+			    if (btnb == 6) {sprintf(config[8],"bind alt quit");}
+			    if (btnx == 6) {sprintf(config[9],"bind space quit");}
+			    if (btny == 6) {sprintf(config[10],"bind shift quit");}
+			    if (btnl == 6) {sprintf(config[11],"bind tab quit");}
+			    if (btnr == 6) {sprintf(config[12],"bind backspace quit");}
+			#endif
+			#if defined(WIZ) || defined(GP2X_ONLY)
+			    if (btna == 0) {sprintf(config[7],"unbind joy12");}
+			    if (btnb == 0) {sprintf(config[8],"unbind joy13");}
+			    if (btnx == 0) {sprintf(config[9],"unbind joy14");}
+			    if (btny == 0) {sprintf(config[10],"unbind joy15");}
+			    if (btnl == 0) {sprintf(config[11],"unbind joy10");}
+			    if (btnr == 0) {sprintf(config[12],"unbind joy11");}
+
+			    if (btna == 1) {sprintf(config[7],"bind joy12 +a");}
+			    if (btnb == 1) {sprintf(config[8],"bind joy13 +a");}
+			    if (btnx == 1) {sprintf(config[9],"bind joy14 +a");}
+			    if (btny == 1) {sprintf(config[10],"bind joy15 +a");}
+			    if (btnl == 1) {sprintf(config[11],"bind joy10 +a");}
+			    if (btnr == 1) {sprintf(config[12],"bind joy11 +a");}
+
+			    if (btna == 2) {sprintf(config[7],"bind joy12 +b");}
+			    if (btnb == 2) {sprintf(config[8],"bind joy13 +b");}
+			    if (btnx == 2) {sprintf(config[9],"bind joy14 +b");}
+			    if (btny == 2) {sprintf(config[10],"bind joy15 +b");}
+			    if (btnl == 2) {sprintf(config[11],"bind joy10 +b");}
+			    if (btnr == 2) {sprintf(config[12],"bind joy11 +b");}
+
+			    if (btna == 3) {sprintf(config[7],"bind joy12 +select");}
+			    if (btnb == 3) {sprintf(config[8],"bind joy13 +select");}
+			    if (btnx == 3) {sprintf(config[9],"bind joy14 +select");}
+			    if (btny == 3) {sprintf(config[10],"bind joy15 +select");}
+			    if (btnl == 3) {sprintf(config[11],"bind joy10 +select");}
+			    if (btnr == 3) {sprintf(config[12],"bind joy11 +select");}
+
+			    if (btna == 4) {sprintf(config[7],"bind joy12 +start");}
+			    if (btnb == 4) {sprintf(config[8],"bind joy13 +start");}
+			    if (btnx == 4) {sprintf(config[9],"bind joy14 +start");}
+			    if (btny == 4) {sprintf(config[10],"bind joy15 +start");}
+			    if (btnl == 4) {sprintf(config[11],"bind joy10 +start");}
+			    if (btnr == 4) {sprintf(config[12],"bind joy11 +start");}
+
+			    if (btna == 5) {sprintf(config[7],"bind joy12 reset");}
+			    if (btnb == 5) {sprintf(config[8],"bind joy13 reset");}
+			    if (btnx == 5) {sprintf(config[9],"bind joy14 reset");}
+			    if (btny == 5) {sprintf(config[10],"bind joy15 reset");}
+			    if (btnl == 5) {sprintf(config[11],"bind joy10 reset");}
+			    if (btnr == 5) {sprintf(config[12],"bind joy11 reset");}
+
+			    if (btna == 6) {sprintf(config[7],"bind joy12 quit");}
+			    if (btnb == 6) {sprintf(config[8],"bind joy13 quit");}
+			    if (btnx == 6) {sprintf(config[9],"bind joy14 quit");}
+			    if (btny == 6) {sprintf(config[10],"bind joy15 quit");}
+			    if (btnl == 6) {sprintf(config[11],"bind joy10 quit");}
+			    if (btnr == 6) {sprintf(config[12],"bind joy11 quit");}
+			#endif
+			for(i=0; i<13; i++)
+				rc_command(config[i]);
+
+			pal_dirty();
+
+			if (ret == 11){ /* Apply & Save */
+				file = fopen("bindings.rc","w");
+				for(i=0; i<13; i++){
+					fputs(config[i],file);
+					fputs("\n",file);
+				}
+				fclose(file);
+			}
+		break;
+	}
+	return ret;
+}
+
+int menu_about(){
+
+int ret=0;
+
+char version_str[80];
+char ohboy_ver_str[80];
+
+snprintf(version_str, sizeof(version_str)-1, "Gnuboy %s", VERSION);
+snprintf(ohboy_ver_str, sizeof(ohboy_ver_str)-1, "%s", OHBOY_VER);
+
+	start:
+
+	dialog_begin("About OhBoy",NULL);
+
+	dialog_text(NULL,"OhBoy is a Gameboy emulator for",0);
+	dialog_text(NULL,"small handhelds, using the",0);
+	dialog_text(NULL,"Gnuboy emulation core with a",0);
+	dialog_text(NULL,"basic menu system.",0);
+	dialog_text(NULL,NULL,0);
+	dialog_text(NULL,"OhBoy version:",0);
+	dialog_text(NULL,ohboy_ver_str,0);
+	dialog_text(NULL,NULL,0);
+	dialog_text(NULL,"Based on:",0);
+	dialog_text(NULL,version_str,0);
+	dialog_text(NULL,NULL,0);
+	dialog_text(NULL,"More info:",0);
+	dialog_text(NULL,"http://ohboy.googlecode.com/",0);
+	dialog_text(NULL,"http://gnuboy.googlecode.com/",0);
+	dialog_text(NULL,NULL,FIELD_SELECTABLE); /* Not visible, but always selected, allows to exit to main menu by pressing the "selection" button. You can also go to main menu pressing the "back" button */
+
+	switch(ret=dialog_end()){
+		case 1:
+			return ret;
+			break;
+	}
+	return ret;
+}
+
 int menu(){
 
 	char *dir;
@@ -892,17 +1163,28 @@ int menu(){
 		dialog_begin(rom.name,"ohBoy");
 
 		dialog_text("Back to Game",NULL,FIELD_SELECTABLE);
-
-		dialog_text("Load ROM",NULL,FIELD_SELECTABLE);
-		dialog_text(NULL,NULL,0);
 		dialog_text("Load State",NULL,FIELD_SELECTABLE);
 		dialog_text("Save State",NULL,FIELD_SELECTABLE);
+		dialog_text("Reset Game",NULL,FIELD_SELECTABLE);
 		dialog_text(NULL,NULL,0);
+		dialog_text("Load ROM",NULL,FIELD_SELECTABLE);
 		dialog_text("Options",NULL,FIELD_SELECTABLE);
+		dialog_text("Controls",NULL,FIELD_SELECTABLE);
+		dialog_text("About",NULL,FIELD_SELECTABLE);
 		dialog_text("Quit","",FIELD_SELECTABLE);
 
 		switch(dialog_end()){
 			case 2:
+				if(menu_state(0)) mexit=1;
+				break;
+			case 3:
+				if(menu_state(1)) mexit=1;
+				break;
+			case 4:
+				rc_command("reset");
+				mexit=1;
+				break;
+			case 6:
 				dir = rc_getstr("romdir");
 				if(loadrom = menu_requestfile(NULL,"Select Rom",dir,"gb;gbc;zip")) {
 					loader_unload();
@@ -910,16 +1192,16 @@ int menu(){
 					mexit=1;
 				}
 				break;
-			case 4:
-				if(menu_state(0)) mexit=1;
-				break;
-			case 5:
-				if(menu_state(1)) mexit=1;
-				break;
 			case 7:
 				if(menu_options()) mexit=1;
 				break;
 			case 8:
+				if(menu_controls()) mexit=1;
+				break;
+			case 9:
+				if(menu_about()) mexit=0;
+				break;
+			case 10:
 				exit(0);
 				break;
 			default:
@@ -951,6 +1233,8 @@ launcher:
 	dialog_begin("OhBoy http://ohboy.googlecode.com/", version_str);
 	dialog_text("Load ROM",NULL,FIELD_SELECTABLE);
 	dialog_text("Options",NULL,FIELD_SELECTABLE);
+	dialog_text("Controls",NULL,FIELD_SELECTABLE);
+	dialog_text("About",NULL,FIELD_SELECTABLE);
 	dialog_text("Quit","",FIELD_SELECTABLE);
 
 	switch(dialog_end()){
@@ -962,6 +1246,12 @@ launcher:
 			if(!menu_options()) goto launcher;
 			break;
 		case 3:
+			if(!menu_controls()) goto launcher;
+			break;
+		case 4:
+			if(!menu_about()) goto launcher;
+			break;
+		case 5:
 			exit(0);
 		default:
 			goto launcher;

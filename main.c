@@ -65,6 +65,7 @@ static int upscaler=0, frameskip=0, sdl_showfps=0, cpu_speed=0;
 static char* romdir=0;
 static int osd_persist=0;
 static int dvolume=0;
+static int button_a=2, button_b=1, button_x=2, button_y=1, button_l=3, button_r=4;
 
 rcvar_t vid_exports[] =
 {
@@ -73,6 +74,12 @@ rcvar_t vid_exports[] =
 	RCV_INT("showfps", &sdl_showfps),
 	RCV_INT("cpuspeed",&cpu_speed),
 	RCV_STRING("romdir",&romdir),
+	RCV_INT("button_a", &button_a),
+	RCV_INT("button_b", &button_b),
+	RCV_INT("button_x", &button_x),
+	RCV_INT("button_y", &button_y),
+	RCV_INT("button_l", &button_l),
+	RCV_INT("button_r", &button_r),
 	RCV_END
 };
 
@@ -1004,12 +1011,21 @@ void ev_poll()
 				dvolume = 1;
 			} else if(event.key.keysym.sym==SDLK_MINUS){
 				dvolume = - 1;
+#ifdef DINGOO_NATIVE
+			} else if(event.key.keysym.sym==SDLK_PAUSE){
+				dvolume = 0;
+				osd_persist = 0;
+				hw.pad = 0;
+				menu();
+			}
+#else
 			} else if(event.key.keysym.sym==SDLK_ESCAPE){
 				dvolume = 0;
 				osd_persist = 0;
 				hw.pad = 0;
 				menu();
 			}
+#endif
 			ev.type = EV_PRESS;
 			ev.code = mapscancode(event.key.keysym.sym);
 			ev_postevent(&ev);
@@ -1385,11 +1401,22 @@ int main(int argc, char *argv[]){
 	rc_command("bind joyleft +left");
 	rc_command("bind joyright +right");
 	rc_command("bind joy0 +b");
-	rc_command("bind joy3 +a");
-	rc_command("bind joy1 +b");
 	rc_command("bind joy2 +a");
+	rc_command("bind joy1 +b");
+	rc_command("bind joy3 +a");
+	rc_command("bind joy4 +select");
+	rc_command("bind joy5 +start");
 	rc_command("bind joy8 +start");
 	rc_command("bind joy9 +select");
+#endif
+
+#ifdef WIZ
+	rc_command("bind joy12 +b");
+	rc_command("bind joy13 +a");
+	rc_command("bind joy14 +b");
+	rc_command("bind joy15 +a");
+	rc_command("bind joy10 +select");
+	rc_command("bind joy11 +start");
 #endif
 
 #ifdef GP2X_ONLY
@@ -1397,28 +1424,29 @@ int main(int argc, char *argv[]){
 	rc_command("bind joydown +down");
 	rc_command("bind joyleft +left");
 	rc_command("bind joyright +right");
+	rc_command("bind joy12 +b");
 	rc_command("bind joy13 +a");
 	rc_command("bind joy14 +b");
+	rc_command("bind joy15 +a");
+	rc_command("bind joy10 +select");
+	rc_command("bind joy11 +start");
 	rc_command("bind joy8 +start");
 	rc_command("bind joy9 +select");
 #endif
 
 #ifdef DINGOO_NATIVE
-	rc_command("bind space +select"); /* X button */
-	rc_command("bind shift +select"); /* Y button - LSHIFT*/
-	rc_command("bind tab quit"); /* Left shoulder */
-	rc_command("bind backspace quit"); /* Right shoulder */
+	rc_command("bind space +b"); /* X button */
+	rc_command("bind shift +a"); /* Y button - LSHIFT*/
+	rc_command("bind tab +select"); /* Left shoulder */
+	rc_command("bind backspace +start"); /* Right shoulder */
 	rc_command("bind up +up"); /*  */
 	rc_command("bind down +down"); /*  */
 	rc_command("bind left +left"); /*  */
 	rc_command("bind right +right"); /*  */
-	rc_command("bind ctrl +a"); /* A button - LEFTCTRL */
-	rc_command("bind alt +b"); /* B button - LEFTALT */
+	rc_command("bind ctrl +b"); /* A button - LEFTCTRL */
+	rc_command("bind alt +a"); /* B button - LEFTALT */
 	rc_command("bind enter +start"); /* START button */
-	rc_command("unbind esc"); /* SELECT button */
-    /* do not bind esc as menu grabs it...
 	rc_command("bind esc +select"); // SELECT button
-    */
 #endif /* DINGOO_NATIVE */
 
 
@@ -1434,6 +1462,7 @@ int main(int argc, char *argv[]){
 	rc_command("set romdir \"roms\"");
 #endif /* DINGOO_NATIVE */
 	rc_sourcefile("ohboy.rc");
+	rc_sourcefile("bindings.rc");
 
 	mkdir("saves", 0777); /* FIXME lookup "savedir" rc variable and mkdir that instead? */
 

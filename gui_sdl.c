@@ -56,6 +56,35 @@ enum
 #else
 	if(SDL_PollEvent(&event)) {
 #endif
+
+#ifdef DINGOO_NATIVE
+		if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP){
+			ev->state = event.key.state == SDL_PRESSED ? GUI_PRESSED : GUI_RELEASED;
+			switch(event.key.keysym.sym){
+				case SDLK_LCTRL:
+					ev->key = GUI_SELECT;
+					break;
+				case SDLK_LALT:
+					ev->key = GUI_BACK;
+					break;
+				case SDLK_UP:
+					ev->key = GUI_UP;
+					break;
+				case SDLK_DOWN:
+					ev->key = GUI_DOWN;
+					break;
+				case SDLK_LEFT:
+					ev->key = GUI_LEFT;
+					break;
+				case SDLK_RIGHT:
+					ev->key = GUI_RIGHT;
+					break;
+				default:
+					return 0;
+			}
+			return 1;
+		}
+#else
 		if(event.type == SDL_KEYDOWN || event.type == SDL_KEYUP){
 			ev->state = event.key.state == SDL_PRESSED ? GUI_PRESSED : GUI_RELEASED;
 			switch(event.key.keysym.sym){
@@ -84,6 +113,8 @@ enum
 			}
 			return 1;
 		}
+#endif
+
 #if GP2X_ONLY
 		if(event.type == SDL_JOYBUTTONUP || event.type == SDL_JOYBUTTONDOWN){
 			ev->state = event.type == SDL_JOYBUTTONDOWN ? GUI_PRESSED : GUI_RELEASED;

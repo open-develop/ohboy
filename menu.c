@@ -1134,7 +1134,7 @@ snprintf(ohboy_ver_str, sizeof(ohboy_ver_str)-1, "%s", OHBOY_VER);
 	dialog_text(NULL,"OhBoy version:",0);
 	dialog_text(NULL,ohboy_ver_str,0);
 	dialog_text(NULL,NULL,0);
-	dialog_text(NULL,"Based on:",0);
+	dialog_text(NULL,"Using:",0);
 	dialog_text(NULL,version_str,0);
 	dialog_text(NULL,NULL,0);
 	dialog_text(NULL,"More info:",0);

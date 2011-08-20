@@ -73,6 +73,8 @@ MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
 all: ohboy_ver.h ohboy
 
 # FIXME need better dependency handling
+menu.o: ohboy_ver.h
+
 ohboy_ver.h:
 	sh gen_ohboyver.sh > ohboy_ver.h
 

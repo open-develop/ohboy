@@ -97,6 +97,8 @@ APP_NAME = ohboy_dingoo
 all : ohboy_ver.h $(APP_NAME).app $(BUILD_DINGOO_SIM)
 
 # FIXME need better dependency handling
+menu.o: ohboy_ver.h
+
 ohboy_ver.h:
 	sh gen_ohboyver.sh > ohboy_ver.h
 

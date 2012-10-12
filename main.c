@@ -1263,7 +1263,10 @@ void ohb_loadrom(char *rom){
 	emu_reset();
 }
 
-#ifdef DINGOO_NATIVE
+#ifdef DINGOO_BUILD
+/*
+** basically a dirname() implementation
+*/
 char     exe_path[256];
 char* exe_path_init(const char* inPath) {
 	uintptr_t i, j;
@@ -1275,7 +1278,7 @@ char* exe_path_init(const char* inPath) {
 	exe_path[j] = '\0';
 	return exe_path;
 }
-#endif /* DINGOO_NATIVE */
+#endif /* DINGOO_BUILD */
 
 int main(int argc, char *argv[]){
 	FILE *config;
@@ -1457,14 +1460,14 @@ int main(int argc, char *argv[]){
 	rc_command("set upscaler 0");
 	rc_command("set frameskip 0");
 	rc_command("set clockspeed 0");
-#ifdef DINGOO_NATIVE /* FIXME TODO check this */
+#ifdef DINGOO_BUILD
 	exe_path_init(argv[0]); /* workout directory containing this exe */
 	tmp_buf = exe_path;
 
 	rc_setvar("romdir", rcv_string, &tmp_buf);
 #else
 	rc_command("set romdir \"roms\"");
-#endif /* DINGOO_NATIVE */
+#endif /* DINGOO_BUILD */
 	rc_sourcefile("ohboy.rc");
 	rc_sourcefile("bindings.rc");
 

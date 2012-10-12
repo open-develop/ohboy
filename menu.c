@@ -994,7 +994,7 @@ int menu_controls(){
 			    if (btnl == 6) {sprintf(config[11],"bind joy4 quit");}
 			    if (btnr == 6) {sprintf(config[12],"bind joy5 quit");}
 			#endif
-			#if defined(DINGOO_NATIVE)
+			#if defined(DINGOO_BUILD)
 			    if (btna == 0) {sprintf(config[7],"unbind ctrl");}
 			    if (btnb == 0) {sprintf(config[8],"unbind alt");}
 			    if (btnx == 0) {sprintf(config[9],"unbind space");}
@@ -1173,11 +1173,11 @@ int menu(){
 		dialog_text("About",NULL,FIELD_SELECTABLE);
 		dialog_text("Quit","",FIELD_SELECTABLE);
 		
-#ifdef DINGOO_NATIVE
+#ifdef DINGOO_BUILD
 		dialog_text(NULL, NULL, 0); /* blank line */
 		dialog_text("Menu:", NULL, 0);
 		dialog_text(" Slide Power", NULL, 0);
-#endif /* DINGOO_NATIVE */
+#endif /* DINGOO_BUILD */
 
 		switch(dialog_end()){
 			case 2:
@@ -1243,11 +1243,11 @@ launcher:
 	dialog_text("About",NULL,FIELD_SELECTABLE);
 	dialog_text("Quit","",FIELD_SELECTABLE);
 
-#ifdef DINGOO_NATIVE
+#ifdef DINGOO_BUILD
 	dialog_text(NULL, NULL, 0); /* blank line */
 	dialog_text("Menu:", NULL, 0);
 	dialog_text(" Slide Power", NULL, 0);
-#endif /* DINGOO_NATIVE */
+#endif /* DINGOO_BUILD */
 
 	switch(dialog_end()){
 		case 1:

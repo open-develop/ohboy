@@ -1011,7 +1011,7 @@ void ev_poll()
 				dvolume = 1;
 			} else if(event.key.keysym.sym==SDLK_MINUS){
 				dvolume = - 1;
-#ifdef DINGOO_NATIVE
+#ifdef DINGOO_BUILD
 			} else if(event.key.keysym.sym==SDLK_PAUSE){
 				dvolume = 0;
 				osd_persist = 0;
@@ -1434,7 +1434,7 @@ int main(int argc, char *argv[]){
 	rc_command("bind joy9 +select");
 #endif
 
-#ifdef DINGOO_NATIVE
+#ifdef DINGOO_BUILD
 	rc_command("bind space +b"); /* X button */
 	rc_command("bind shift +a"); /* Y button - LSHIFT*/
 	rc_command("bind tab +select"); /* Left shoulder */
@@ -1447,13 +1447,13 @@ int main(int argc, char *argv[]){
 	rc_command("bind alt +a"); /* B button - LEFTALT */
 	rc_command("bind enter +start"); /* START button */
 	rc_command("bind esc +select"); // SELECT button
-#endif /* DINGOO_NATIVE */
+#endif /* DINGOO_BUILD */
 
 
 	rc_command("set upscaler 0");
 	rc_command("set frameskip 0");
 	rc_command("set clockspeed 0");
-#ifdef DINGOO_NATIVE
+#ifdef DINGOO_NATIVE /* FIXME TODO check this */
 	exe_path_init(argv[0]); /* workout directory containing this exe */
 	tmp_buf = exe_path;
 

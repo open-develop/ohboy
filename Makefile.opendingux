@@ -18,18 +18,24 @@ LD = $(CC)
 CFLAGS = -O3 `${DINGUX_SDK}/usr/bin/sdl-config --cflags` -I${DINGUX_SDK}/usr/include/
 LDFLAGS = -s
 
+
+CFLAGS += -DDINGOO_BUILD
+
 GNUBOY = ./gnuboy
 
 OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o $(GNUBOY)/cpu.o $(GNUBOY)/mem.o \
 	$(GNUBOY)/rtc.o $(GNUBOY)/hw.o $(GNUBOY)/sound.o \
 	$(GNUBOY)/events.o $(GNUBOY)/keytable.o \
-	$(GNUBOY)/loader.o $(GNUBOY)/save.o $(GNUBOY)/debug.o $(GNUBOY)/emu.o $(GNUBOY)/main.o \
+	$(GNUBOY)/loader.o $(GNUBOY)/save.o $(GNUBOY)/debug.o $(GNUBOY)/emu.o \
+	$(GNUBOY)/main.o \
 	$(GNUBOY)/rccmds.o $(GNUBOY)/rckeys.o $(GNUBOY)/rcvars.o $(GNUBOY)/rcfile.o $(GNUBOY)/exports.o \
 	$(GNUBOY)/split.o $(GNUBOY)/path.o $(GNUBOY)/inflate.o \
 	$(GNUBOY)/sys/sdl/SFont.o  \
 	gui_sdl.o keymap.o \
 	main.o menu.o \
 	./ubytegui/dialog.o ./ubytegui/font.o ./ubytegui/gui.o ./ubytegui/pixmap.o \
+
+# $(GNUBOY)/sys/dingoo/main.oo 
 
 ## NOTE inc paths are from TinyCore SDL-dev
 DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
@@ -105,6 +111,10 @@ $(TARGET): $(OBJS)
 
 clean:
 	rm -f ohboy ohboy.exe *.o ubytegui/*.o $(GNUBOY)/*.o $(GNUBOY)/unzip/*.o  $(GNUBOY)/sys/*/*.o  $(APP_NAME).elf $(APP_NAME).bin $(APP_NAME).app $(APP_NAME).sim
+
+
+#$(GNUBOY)/sys/dingoo/main.o:
+#	$(MYCC) -Dmain=gnuboy_main -c $(GNUBOY)/sys/dingoo/main.c -o $@
 
 $(GNUBOY)/main.o:
 	$(MYCC) -Dmain=gnuboy_main -c $(GNUBOY)/main.c -o $@

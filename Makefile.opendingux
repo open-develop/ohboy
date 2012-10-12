@@ -59,7 +59,7 @@ LIBS += -lz
 # Simple disable sound support
 # not as cleanly implemented as in core gnuboy as it
 # still includes unused pcm/sound code... But it works :-)
-GNUBOY_DISABLE_SDL_SOUND = True
+#GNUBOY_DISABLE_SDL_SOUND = True
 ifdef GNUBOY_DISABLE_SDL_SOUND
 	OBJS += $(GNUBOY)/sys/dummy/nosound.o
 	DEFS += -DGNUBOY_DISABLE_SDL_SOUND

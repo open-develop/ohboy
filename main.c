@@ -89,11 +89,13 @@ SDL_Surface *screen;
 int framecounter = 0;
 
 #ifndef GNUBOY_DISABLE_SDL_SOUND
+#ifndef OHBOY_DISABLE_SDL_SOUND
 struct pcm pcm;
 rcvar_t pcm_exports[] =
 {
 	RCV_END
 };
+#endif /* OHBOY_DISABLE_SDL_SOUND */
 #endif /* GNUBOY_DISABLE_SDL_SOUND */
 
 #define PCM_BUFFER 4096
@@ -830,6 +832,7 @@ static void audio_callback(void *d, byte *stream, int len) {
 }
 
 #ifndef GNUBOY_DISABLE_SDL_SOUND
+#ifndef OHBOY_DISABLE_SDL_SOUND
 void pcm_init(){
 	SDL_AudioSpec as;
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
@@ -906,6 +909,7 @@ return 0; /* no sound */
 void pcm_close() {
 	SDL_CloseAudio();
 }
+#endif /* OHBOY_DISABLE_SDL_SOUND */
 #endif /* GNUBOY_DISABLE_SDL_SOUND */
 
 
@@ -1534,7 +1538,13 @@ int main(int argc, char *argv[]){
 
 	vid_preinit();
 	atexit(shutdown);
+#ifndef DISABLE_CATCH_SIGNALS
+	/*
+	** SDL with threads will raise all sorts of signals
+	** may not want to catch them all.
+	*/
 	catch_signals();
+#endif /* DISABLE_CATCH_SIGNALS */
 	vid_init();
 	pcm_init();
 	scaler_init(0);

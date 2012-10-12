@@ -4,7 +4,7 @@ CC = gcc
 LD = $(CC)
 
 CFLAGS = -O3
-LDFLAGS = -s
+LDFLAGS = 
 
 GNUBOY = ./gnuboy
 
@@ -38,10 +38,16 @@ OBJS += $(GNUBOY)/unzip/unzip.o $(GNUBOY)/unzip/ioapi.o
 LIBS += -lz
 
 ############
+# use OhBoy SDL sound or gnuboy SDL sound?
+OHBOY_DISABLE_SDL_SOUND = True
+ifdef OHBOY_DISABLE_SDL_SOUND
+	DEFS += -DOHBOY_DISABLE_SDL_SOUND -DGNUBOY_DISABLE_SDL_VIDEO
+	OBJS += $(GNUBOY)/sys/sdl/sdl.o
+endif
 # Simple disable sound support
 # not as cleanly implemented as in core gnuboy as it
 # still includes unused pcm/sound code... But it works :-)
-GNUBOY_DISABLE_SDL_SOUND = True
+#GNUBOY_DISABLE_SDL_SOUND = True
 ifdef GNUBOY_DISABLE_SDL_SOUND
 	OBJS += $(GNUBOY)/sys/dummy/nosound.o
 	DEFS += -DGNUBOY_DISABLE_SDL_SOUND
@@ -64,6 +70,15 @@ endif
 ifdef USE_LIBPNG
 	DEFS += -DUBYTE_USE_LIBPNG
 	LIBS += -lpng
+endif
+
+DEBUG_BUILD = true
+ifdef DEBUG_BUILD
+	CFLAGS += -g
+	DO_STRIP = 
+else
+	LDFLAGS += -s
+	DO_STRIP = ${STRIP} ${TARGET}
 endif
 
 DEFS += -DGNUBOY_NO_SCREENSHOT

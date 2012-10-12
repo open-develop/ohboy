@@ -1,9 +1,21 @@
-# make -B -f Makefile.linux_sdl
+# OhBoy makefile
+# Dingoo Open Dingux SDK - clach04
+#
+# NOTE! Requires DINGUX_SDK environment variable to be set to Open Dingux
+#       location (typically this is "/opt/opendingux-toolchain").
 
-CC = gcc
+#   make -f Makefile.opendingux clean
+#   make -f Makefile.opendingux
+#   make -f Makefile.opendingux clean all
+
+TARGET = ohboy.dge
+
+EXE_PREFIX = mipsel-linux-
+CC        = ${EXE_PREFIX}gcc
+STRIP     = ${EXE_PREFIX}strip
 LD = $(CC)
 
-CFLAGS = -O3
+CFLAGS = -O3 `${DINGUX_SDK}/usr/bin/sdl-config --cflags` -I${DINGUX_SDK}/usr/include/
 LDFLAGS = -s
 
 GNUBOY = ./gnuboy
@@ -21,8 +33,8 @@ OBJS = $(GNUBOY)/lcd.o $(GNUBOY)/refresh.o $(GNUBOY)/lcdc.o $(GNUBOY)/palette.o 
 
 ## NOTE inc paths are from TinyCore SDL-dev
 DEFS = -DIS_LITTLE_ENDIAN -DALT_PATH_SEP
-INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl -I/usr/include/ -I/tmp/tcloop/SDL-dev/usr/local/
-LIBS =  -lSDLmain -lSDL
+INCS = -I$(GNUBOY) -I$(GNUBOY)/sys/sdl 
+LIBS =  -lc `${DINGUX_SDK}/usr/bin/sdl-config --libs` 
 
 # Use SDL_image - for use with SFont (rather than FREETYPE_TTF)
 # NOTE can still use SFont without SDL_image
@@ -70,7 +82,7 @@ DEFS += -DGNUBOY_NO_SCREENSHOT
 
 MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
 
-all: ohboy_ver.h ohboy
+all: ohboy_ver.h $(TARGET)
 
 # FIXME need better dependency handling
 menu.o: ohboy_ver.h
@@ -78,7 +90,7 @@ menu.o: ohboy_ver.h
 ohboy_ver.h:
 	sh gen_ohboyver.sh > ohboy_ver.h
 
-ohboy: $(OBJS)
+$(TARGET): $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
 
 clean:

@@ -115,7 +115,7 @@ $(APP_NAME).elf : $(OBJS)
 
 
 clean:
-	rm -f ohboy ohboy.exe *.o ubytegui/*.o $(GNUBOY)/*.o $(GNUBOY)/sys/dingoo/*.o   $(APP_NAME).elf $(APP_NAME).bin $(APP_NAME).app $(APP_NAME).sim
+	rm -f ohboy ohboy.exe *.o ubytegui/*.o $(GNUBOY)/*.o $(GNUBOY)/unzip/*.o  $(GNUBOY)/sys/*/*.o  $(APP_NAME).elf $(APP_NAME).bin $(APP_NAME).app $(APP_NAME).sim
 
 $(GNUBOY)/main.o:
 	$(MYCC) -Dmain=gnuboy_main -c $(GNUBOY)/main.c -o $@

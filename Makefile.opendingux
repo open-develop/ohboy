@@ -78,6 +78,15 @@ ifdef USE_LIBPNG
 	LIBS += -lpng
 endif
 
+DEBUG_BUILD = true
+ifdef DEBUG_BUILD
+	CFLAGS += -g
+	DO_STRIP = 
+else
+	DO_STRIP = ${STRIP} ${TARGET}
+endif
+
+
 DEFS += -DGNUBOY_NO_SCREENSHOT
 
 MYCC = $(CC) $(CFLAGS) $(INCS) $(DEFS)
@@ -92,6 +101,7 @@ ohboy_ver.h:
 
 $(TARGET): $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
+	${DO_STRIP}
 
 clean:
 	rm -f ohboy ohboy.exe *.o ubytegui/*.o $(GNUBOY)/*.o $(GNUBOY)/unzip/*.o  $(GNUBOY)/sys/*/*.o  $(APP_NAME).elf $(APP_NAME).bin $(APP_NAME).app $(APP_NAME).sim

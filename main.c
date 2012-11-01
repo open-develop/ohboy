@@ -1532,6 +1532,7 @@ int main(int argc, char *argv[]){
 		rom = malloc(PATH_MAX);
 		strcpy(rom, argv[1]);
 	}
+	atexit(shutdown);
 	while(!rom)
 	{
 		rom = launcher();
@@ -1540,7 +1541,6 @@ int main(int argc, char *argv[]){
 	memset(screen->pixels,0,screen->pitch*screen->h);
 
 	vid_preinit();
-	atexit(shutdown);
 #ifndef DISABLE_CATCH_SIGNALS
 	/*
 	** SDL with threads will raise all sorts of signals

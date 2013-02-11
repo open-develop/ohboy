@@ -39,7 +39,7 @@ LIBS += -lz
 
 ############
 # use OhBoy SDL sound or gnuboy SDL sound?
-OHBOY_DISABLE_SDL_SOUND = True
+#OHBOY_DISABLE_SDL_SOUND = True
 ifdef OHBOY_DISABLE_SDL_SOUND
 	DEFS += -DOHBOY_DISABLE_SDL_SOUND -DGNUBOY_DISABLE_SDL_VIDEO
 	OBJS += $(GNUBOY)/sys/sdl/sdl.o

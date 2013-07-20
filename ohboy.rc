@@ -7,4 +7,3 @@ set filterdmg 0
 set upscaler 0
 set frameskip 0
 set cpuspeed 0
-set romdir "./"

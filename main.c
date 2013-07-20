@@ -562,13 +562,11 @@ void gb_upscale(uint32_t *to, uint32_t *from) {
             reg1 = reg2 & 0xffff0000;
             reg1 |= reg1 >> 16;
             *(to+1) = reg1;
-            reg1 = (reg1 & 0xf7def7de) >> 1;
 
             // second pixel, upper line => reg2
             reg2 = reg2 & 0xffff;
             reg2 |= reg2 << 16;
             *to = reg2;
-            reg2 = (reg2 & 0xf7def7de) >> 1;
 
             reg4 = *(from + 160/2);
 
@@ -576,19 +574,25 @@ void gb_upscale(uint32_t *to, uint32_t *from) {
             reg3 = reg4 & 0xffff0000;
             reg3 |= reg3 >> 16;
             *(to + 2*320/2 +1) = reg3;
-            reg3 = (reg3 & 0xf7def7de) >> 1;
 
             // second pixel, middle line => reg4
             reg4 = reg4 & 0xffff;
             reg4 |= reg4 << 16;
             *(to + 2*320/2) = reg4;
-            reg4 = (reg4 & 0xf7def7de) >> 1;
 
             // We calculate the first pixel of the 2nd output line.
-            *(to + 320/2 +1) = reg1 + reg3;
+			if (reg1 == reg3)
+				*(to + 320/2 +1) = reg1;
+			else
+				*(to + 320/2 +1) = ((reg1 & 0xf7def7de) >> 1)
+				  + ((reg3 & 0xf7def7de) >> 1);
 
             // We calculate the second pixel of the 2nd output line.
-            *(to + 320/2) = reg2 + reg4;
+			if (reg2 == reg4)
+				*(to + 320/2) = reg2;
+			else
+				*(to + 320/2) = ((reg2 & 0xf7def7de) >> 1)
+				  + ((reg4 & 0xf7def7de) >> 1);
 
             reg2 = *(from++ + 2*160/2);
 
@@ -596,17 +600,24 @@ void gb_upscale(uint32_t *to, uint32_t *from) {
             reg1 = reg2 & 0xffff0000;
             reg1 |= reg1 >> 16;
             *(to + 4*320/2 +1) = reg1;
-            reg1 = (reg1 & 0xf7def7de) >> 1;
 
             // second pixel, bottom line => reg2
             reg2 = reg2 & 0xffff;
             reg2 |= reg2 << 16;
             *(to + 4*320/2) = reg2;
-            reg2 = (reg2 & 0xf7def7de) >> 1;
 
             // We calculate the two pixels of the 4th line.
-            *(to++ + 3*320/2) = reg2 + reg4;
-            *(to++ + 3*320/2) = reg1 + reg3;
+			if (reg2 == reg4)
+				*(to++ + 3*320/2) = reg2;
+			else
+				*(to++ + 3*320/2) = ((reg2 & 0xf7def7de) >> 1)
+				  + ((reg4 & 0xf7def7de) >> 1);
+
+			if (reg1 == reg3)
+				*(to++ + 3*320/2) = reg1;
+			else
+				*(to++ + 3*320/2) = ((reg1 & 0xf7def7de) >> 1)
+				  + ((reg3 & 0xf7def7de) >> 1);
         }
         to += 4*320/2;
         from += 2*160/2;

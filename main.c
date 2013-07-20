@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <signal.h>
 
+#include <unistd.h>  /* for getcwd() */
+
 /* posix includes for mkdir */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1477,7 +1479,17 @@ int main(int argc, char *argv[]){
 
 	rc_setvar("romdir", rcv_string, &tmp_buf);
 #else
-	rc_command("set romdir \"roms\"");
+	{
+		char tmp_pwd[256];
+		char tmp_commmand[sizeof(tmp_pwd) + 30];
+
+		if (getcwd(tmp_pwd, sizeof(tmp_pwd) - 1) == NULL)
+		{
+			strcpy (tmp_pwd, "roms");
+		}
+		snprintf(tmp_commmand, sizeof(tmp_commmand)-1, "set romdir \"%s\"", tmp_pwd);
+		rc_command(tmp_commmand);
+	}
 #endif /* DINGOO_BUILD */
 	rc_sourcefile("ohboy.rc");
 	rc_sourcefile("bindings.rc");
